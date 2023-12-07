@@ -1,8 +1,9 @@
 #!/usr/bin/env bash
 
-# set -e          # Exit on error
 # set -o pipefail # Exit on pipe error
-# set -x          # Enable verbosity
+set -e          # Exit on error
+set -u          # Exit on unset ENVVAR
+set -x          # Enable verbosity
 
 # Dont link DS_Store files
 find . -name ".DS_Store" -exec rm {} \;
