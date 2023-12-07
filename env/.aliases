@@ -92,6 +92,8 @@ stt_title () { setTerminalText 2 $@; }
 tn () { stt_tab $@ && tmux new -s $@; }
 ta () { stt_tab $@ && tmux a -t $@; }
 
+
+
 ###########################################################################################################################
 
 # SECRET ALIASES
@@ -119,6 +121,10 @@ function rcv() {
     file=$(cat /tmp/passage/last)
     /bin/cp -i "/tmp/passage/$file" $file
     /bin/rm "/tmp/passage/$file"
+}
+
+function shellfix {
+    shellcheck -f diff "$1" | git apply
 }
 
 # Find docker container address with a given name
