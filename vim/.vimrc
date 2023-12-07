@@ -130,10 +130,14 @@ Plug 'rhysd/vim-grammarous'            " GrammarCheck using LanguageTool
 Plug 'ron89/thesaurus_query.vim'       " Synonym query
 
 " Other
-Plug 'wakatime/vim-wakatime'           " Wakatime time tracking
+" Plug 'wakatime/vim-wakatime'           " Wakatime time tracking
 Plug 'ihsanturk/neuron.vim'            " For neuron Zettelkasten
 Plug 'liuchengxu/vim-which-key'
 Plug 'iamcco/markdown-preview.nvim', { 'do': { -> mkdp#util#install() }, 'for': ['markdown', 'vim-plug']}
+
+Plug 'cormacrelf/dark-notify'
+" Plug 'lukas-reineke/indent-blankline.nvim'
+" lua require("ibl").setup()
 
 if has('nvim-0.5')
     Plug 'phaazon/hop.nvim'
@@ -456,7 +460,7 @@ let g:ale_enabled = 1
 let g:ale_lint_on_enter = 0
 let g:ale_lint_on_save = 1
 " Set this variable to 1 to fix files when you save them.
-let g:ale_fix_on_save = 1
+let g:ale_fix_on_save = 0
 let g:ale_float_preview=1
 let g:ale_fixers = {
     \   '*': ['remove_trailing_lines', 'trim_whitespace'],
@@ -630,6 +634,7 @@ let g:secure_modelines_allowed_items = [
 
 " remote yanks OSC52
 autocmd TextYankPost * if v:event.operator is 'y' && v:event.regname is '+' | execute 'OSCYankRegister +' | endif
+autocmd TextYankPost * if v:event.operator is 'd' && v:event.regname is '+' | execute 'OSCYankRegister +' | endif
 
 " =============================================================================
 "   CUSTOM SHORTCUTS  (LEADER, FN, &c)
@@ -832,3 +837,27 @@ let $LOCALFILE=expand("~/.vimrc_local")
 if filereadable($LOCALFILE)
     source $LOCALFILE
 endif
+
+
+" Use tab for trigger completion with characters ahead and navigate
+" NOTE: There's always complete item selected by default, you may want to enable
+" no select by `"suggest.noselect": true` in your configuration file
+" NOTE: Use command ':verbose imap <tab>' to make sure tab is not mapped by
+" other plugin before putting this into your config
+inoremap <silent><expr> <TAB>
+      \ coc#pum#visible() ? coc#pum#next(1) :
+      \ CheckBackspace() ? "\<Tab>" :
+      \ coc#refresh()
+
+inoremap <expr><S-TAB> coc#pum#visible() ? coc#pum#prev(1) : "\<C-h>"
+
+" Make <CR> to accept selected completion item or notify coc.nvim to format
+" <C-g>u breaks current undo, please make your own choice
+inoremap <silent><expr> <CR> coc#pum#visible() ? coc#pum#confirm()
+                              \: "\<C-g>u\<CR>\<c-r>=coc#on_enter()\<CR>"
+
+function! CheckBackspace() abort
+  let col = col('.') - 1
+  return !col || getline('.')[col - 1]  =~# '\s'
+endfunction
+

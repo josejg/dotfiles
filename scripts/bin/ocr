@@ -10,7 +10,7 @@ function notify-send() {
     osascript -e "display notification \"$2\" with title \"OCR\""
 }
 
-PATH="/usr/local/bin/:$PATH"
+PATH="/usr/local/bin/:/opt/homebrew/bin:$PATH"
 
 # Check if the needed dependencies are installed
 dependencies=(tesseract)

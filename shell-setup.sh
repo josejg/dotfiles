@@ -52,6 +52,9 @@ pull_repo $HOME/.tmux/plugins/tpm
 if [[ ! -d $HOME/.zprezto ]]; then
     git clone --recursive https://github.com/sorin-ionescu/prezto.git "${ZDOTDIR:-$HOME}/.zprezto"
 
+    mv ~/.zshrc ~/.zshrc.bk
+    mv ~/.zprofile ~/.zprofile.bk
+
     setopt EXTENDED_GLOB
     for rcfile in "${ZDOTDIR:-$HOME}"/.zprezto/runcoms/^README.md(.N); do
       ln -s "$rcfile" "${ZDOTDIR:-$HOME}/.${rcfile:t}"

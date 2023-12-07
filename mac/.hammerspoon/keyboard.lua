@@ -41,7 +41,10 @@ hs.hotkey.bind({"cmd"}, "return", openTerminal)
 hs.hotkey.bind({"cmd","shift"}, "return", openBrowser)
 
 -- Ctrl + ⇧ + ⏎
-hs.hotkey.bind({"ctrl", "cmd"}, "return", openVimr)
+hs.hotkey.bind({"ctrl", "cmd"}, "return", function() hs.application.launchOrFocus("Chromium") end)
+
+-- Ctrl + ⇧ + ⏎
+hs.hotkey.bind({"ctrl", "cmd", 'alt'}, "return", function() os.execute("/opt/homebrew/bin/firefox https://chat.openai.com") end)
 
 -- Hyper+V types contents of clipboard
 hs.hotkey.bind(hyper, "V", function() hs.eventtap.keyStrokes(hs.pasteboard.getContents()) end)

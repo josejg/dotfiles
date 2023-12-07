@@ -51,3 +51,7 @@ function! OpenFloatingWin()
         \ norelativenumber
         \ signcolumn=no
 endfunction
+
+:lua <<EOF
+require('dark_notify').run()
+EOF

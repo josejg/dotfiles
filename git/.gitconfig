@@ -1,6 +1,6 @@
 [user]
 	name = Jose Javier
-	email = 3844846+JJGO@users.noreply.github.com
+	email = 26491792+josejg@users.noreply.github.com
 [push]
 	default = simple
 [pull]
@@ -8,6 +8,7 @@
 [core]
 	editor = nvim
 	excludesfile = ~/.gitignore_global
+	hooksPath = ~/.databricks/githooks
 [color]
 	ui = auto
 [merge]

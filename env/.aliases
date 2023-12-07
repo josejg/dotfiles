@@ -247,9 +247,9 @@ case "$(uname -s)" in
        alias_if_exists "$i" "g$i"
      done
      alias_if_exists "id" "/usr/local/bin/gid"
-     alias rm="/usr/local/bin/grm -i"
-     alias mv="/usr/local/bin/gmv -i"
-     alias cp="/usr/local/bin/gcp -i"
+     alias rm="/opt/homebrew/bin/grm -i"
+     alias mv="/opt/homebrew/bin/gmv -i"
+     alias cp="/opt/homebrew/bin/gcp -i"
      # alias_if_exists "ls" "/usr/local/bin/gls"
      alias veracrypt="/Applications/VeraCrypt.app/Contents/MacOS/VeraCrypt --text"
      alias sudoedit="sudo -E vim"
