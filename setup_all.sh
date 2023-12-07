@@ -8,7 +8,7 @@ set -x          # Enable verbosity
 # Dont link DS_Store files
 find . -name ".DS_Store" -exec rm {} \;
 
-PROGRAMS=(bash env git python scripts stow tmux vim zsh)
+PROGRAMS=(bash env git python scripts tmux vim zsh)
 # PROGRAMS=(alias aspell bash env git latex python scripts stow tmux vim zsh mac terminal)
 OLD_DOTFILES="dotfile_bk_$(date -u +"%Y%m%d%H%M%S")"
 mkdir $OLD_DOTFILES
