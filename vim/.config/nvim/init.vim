@@ -52,6 +52,6 @@ function! OpenFloatingWin()
         \ signcolumn=no
 endfunction
 
-:lua <<EOF
-require('dark_notify').run()
-EOF
+" :lua <<EOF
+" require('dark_notify').run()
+" EOF
