@@ -135,7 +135,7 @@ Plug 'ihsanturk/neuron.vim'            " For neuron Zettelkasten
 Plug 'liuchengxu/vim-which-key'
 Plug 'iamcco/markdown-preview.nvim', { 'do': { -> mkdp#util#install() }, 'for': ['markdown', 'vim-plug']}
 
-Plug 'cormacrelf/dark-notify'
+" Plug 'cormacrelf/dark-notify'
 " Plug 'lukas-reineke/indent-blankline.nvim'
 " lua require("ibl").setup()
 
@@ -189,7 +189,7 @@ endif
 let g:molokai_original = 0
 
 if has('gui_running')
-    colorscheme base16-gruvbox-dark-hard
+    silent! colorscheme base16-gruvbox-dark-hard
 elseif exists("+termguicolors")
     set termguicolors
     " The commands below are needed for tmux + termguicolors
@@ -201,12 +201,12 @@ elseif exists("+termguicolors")
     set background=dark
     set t_Co=256
 
-    colorscheme vim-monokai-tasty
+    silent! colorscheme vim-monokai-tasty
     " colorscheme sonokai
     " let g:sonokai_style = 'shusia'
 
 elseif &t_Co < 256
-    colorscheme molokai
+    silent! colorscheme molokai
     set nocursorline " looks bad in this mode
 endif
 
