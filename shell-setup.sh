@@ -1,21 +1,22 @@
 #!/usr/bin/env zsh
 set -x
-set -e
+set -eu
 
 #######################
 # BIN
 #######################
 
 function pull_repo() {
-    cd $1
+    cd "$1"
     git pull
     cd -
 }
 
-mkdir -p $HOME/bin
+mkdir -p "$HOME/bin"
+cd "$HOME" 
 
 # FASD
-if [[ ! -f $HOME/bin/fasd ]]; then
+if [[ ! -f "$HOME/bin/fasd" ]]; then
     git clone https://github.com/clvv/fasd.git /tmp/fasd
     cd /tmp/fasd
     PREFIX=$HOME make install
@@ -23,13 +24,13 @@ if [[ ! -f $HOME/bin/fasd ]]; then
 fi
 
 # FZF
-if [[ ! -f $HOME/.fzf/bin/fzf ]]; then
+if [[ ! -f "$HOME/.fzf/bin/fzf" ]]; then
     git clone https://github.com/junegunn/fzf.git $HOME/.fzf
     yes | $HOME/.fzf/install
 fi
 
 # DIFF-SO-FANCY
-if [[ ! -f $HOME/bin/diff-so-fancy ]]; then
+if [[ ! -f "$HOME/bin/diff-so-fancy" ]]; then
     curl -o $HOME/bin/diff-so-fancy https://github.com/so-fancy/diff-so-fancy/releases/download/v1.4.4/diff-so-fancy
     chmod +x $HOME/bin/diff-so-fancy
 fi
@@ -49,11 +50,17 @@ pull_repo $HOME/.tmux/plugins/tpm
 #######################
 # ZSH
 #######################
+
 if [[ ! -d $HOME/.zprezto ]]; then
     git clone --recursive https://github.com/sorin-ionescu/prezto.git "${ZDOTDIR:-$HOME}/.zprezto"
 
-    mv ~/.zshrc ~/.zshrc.bk
-    mv ~/.zprofile ~/.zprofile.bk
+    if [[ -f ~/.zshrc ]]; then
+        mv ~/.zshrc ~/.zshrc.bk
+    fi
+
+    if [[ -f ~/.zprofile ]]; then
+        mv ~/.zprofile ~/.zprofile.bk
+    fi
 
     setopt EXTENDED_GLOB
     for rcfile in "${ZDOTDIR:-$HOME}"/.zprezto/runcoms/^README.md(.N); do
@@ -95,12 +102,7 @@ fi
 # Create Python3 environment
 if [[ ! -d $NVIM/py3 ]]; then
     python3 -m venv $NVIM/py3
-    PIP=$NVIM/py3/bin/pip
-    $PIP install --upgrade pip
-    $PIP install neovim
-    $PIP install 'python-language-server[all]'
-    $PIP install pylint isort jedi flake8
-    $PIP install black yapf
+    $NVIM/py3/bin/pip install neovim 'python-language-server[all]' pylint isort jedi flake8 black yapf ruff
 fi
 
 # Create node env
@@ -118,11 +120,11 @@ fi
 # RUST
 #######################
 
-if [[ ! -d $HOME/.rustup ]]; then
-    curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
-fi
+# if [[ ! -d $HOME/.rustup ]]; then
+#     curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
+# fi
 
-for crate in bat fd-find ripgrep exa tealdeer procs ytop hyperfine bandwhich
-do
-    $HOME/.cargo/bin/cargo install $crate
-done
+# for crate in bat fd-find ripgrep exa tealdeer procs ytop hyperfine bandwhich
+# do
+#     $HOME/.cargo/bin/cargo install $crate
+# done
