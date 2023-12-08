@@ -160,25 +160,24 @@ if isdirectory($HOME . "/.vim/plugged/coc.nvim")
     call coc#add_extension(
        \'coc-explorer',
        \'coc-git',
-       \'coc-go',
-       \'coc-highlight',
-       \'coc-highlight',
-       \'coc-pyright',
        \'coc-json',
-       \'coc-lua',
-       \'coc-prettier',
-       \'coc-rls',
+       \'coc-pyright',
        \'coc-sh',
-       \'coc-tabnine',
-       \'coc-vimlsp',
        \'coc-yaml',
-       \'coc-eslint',
-       \'coc-tsserver',
-       \'coc-xml',
-       \'coc-css',
-       \'coc-stylelint',
      \)
 endif
+       " \'coc-css',
+       " \'coc-eslint',
+       " \'coc-go',
+       " \'coc-highlight',
+       " \'coc-lua',
+       " \'coc-prettier',
+       " \'coc-rls',
+       " \'coc-stylelint',
+       " \'coc-tabnine',
+       " \'coc-tsserver',
+       " \'coc-vimlsp',
+       " \'coc-xml',
 
 " =============================================================================
 "  EDITOR SETTINGS
