@@ -88,16 +88,17 @@ NVIM=$HOME/.neovim
 mkdir -p $NVIM
 
 # AppImage in case the computer does not have a fallback nvim (appimage does not self update)
-if command -v nvim > /dev/null; then
-    echo "NVIM appears to be installed"
-else
-    mkdir -p $NVIM/bin
-    cd $NVIM/bin
-    curl -LO https://github.com/neovim/neovim/releases/latest/download/nvim.appimage
-    chmod u+x nvim.appimage
-    mv nvim.appimage nvim
-    cd -
-fi
+# AppImage does not work in Docker
+# if command -v nvim > /dev/null; then
+#     echo "NVIM appears to be installed"
+# else
+#     mkdir -p $NVIM/bin
+#     cd $NVIM/bin
+#     curl -LO https://github.com/neovim/neovim/releases/latest/download/nvim.appimage
+#     chmod u+x nvim.appimage
+#     mv nvim.appimage nvim
+#     cd -
+# fi
 
 # Create Python3 environment
 if [[ ! -d $NVIM/py3 ]]; then
