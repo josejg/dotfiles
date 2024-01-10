@@ -17,4 +17,5 @@ vim/.vim/undodir
 vim/.vim/spell
 dotfile_bk_*
 todo.md
-alacritty.yml.*.bak
+terminal/.config/alacritty/themes
+terminal/.config/alacritty/current-theme.toml
