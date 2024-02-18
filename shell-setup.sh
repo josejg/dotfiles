@@ -129,3 +129,11 @@ fi
 # do
 #     $HOME/.cargo/bin/cargo install $crate
 # done
+
+
+if [[ ! -d $HOME/.config/alacritty/themes ]]; then
+    mkdir -p $HOME/.config/alacritty/
+    git clone https://github.com/JJGO/alacritty-theme.git $HOME/.config/alacritty/themes
+fi
+
+pull_repo $HOME/.config/alacritty/themes
