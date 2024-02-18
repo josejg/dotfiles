@@ -7,6 +7,7 @@ set nocompatible " VI compatible mode is disabled so that VIm things work
 " =============================================================================
 call plug#begin()
 
+Plug 'github/copilot.vim'
 " Load plugins
 " Per file editor config
 Plug 'ciaranm/securemodelines'
