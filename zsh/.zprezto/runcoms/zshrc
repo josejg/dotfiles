@@ -90,8 +90,8 @@ unset __conda_setup
 
 
 # Environment setup
-if [ -f ~/.env ]; then
-    source ~/.env
+if [ -f ~/.common ]; then
+    source ~/.common
 fi
 
 # ALIASES

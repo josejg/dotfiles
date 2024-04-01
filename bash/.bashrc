@@ -1,7 +1,7 @@
 
 # Environment setup
-if [ -f ~/.env ]; then
-    source ~/.env
+if [ -f ~/.common ]; then
+    source ~/.common
 fi
 
 # Bash Prompt
@@ -22,3 +22,4 @@ fi
 [ -f ~/.fzf.bash ] && source ~/.fzf.bash
 HISTIGNORE="$HISTIGNORE:jrnl *"
 export TERM=xterm-256color
+. "$HOME/.cargo/env"
