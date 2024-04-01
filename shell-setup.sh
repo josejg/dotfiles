@@ -40,11 +40,11 @@ fi
 # TMUX
 #######################
 
-if [[ ! -d $HOME/.tmux/plugins/tpm ]]; then
-    mkdir -p $HOME/.tmux/plugins
-    git clone https://github.com/tmux-plugins/tpm $HOME/.tmux/plugins/tpm
-fi
-pull_repo $HOME/.tmux/plugins/tpm
+# if [[ ! -d $HOME/.tmux/plugins/tpm ]]; then
+#     mkdir -p $HOME/.tmux/plugins
+#     git clone https://github.com/tmux-plugins/tpm $HOME/.tmux/plugins/tpm
+# fi
+# pull_repo $HOME/.tmux/plugins/tpm
 
 
 #######################
