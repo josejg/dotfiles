@@ -10,8 +10,8 @@ call plug#begin()
 Plug 'github/copilot.vim'
 " Load plugins
 " Per file editor config
-Plug 'ciaranm/securemodelines'
-Plug 'editorconfig/editorconfig-vim'
+" Plug 'ciaranm/securemodelines'
+" Plug 'editorconfig/editorconfig-vim'
 
 " Search
 Plug 'romainl/vim-cool'               " Disables highlight when search is done
@@ -35,13 +35,13 @@ Plug 'tpope/vim-sensible'             " Some better defaults
 Plug 'tpope/vim-unimpaired'           " Pairs of mappings
 Plug 'tpope/vim-surround'             " Surround with parentheses & co
 Plug 'joom/vim-commentary'            " To comment stuff out
-Plug 'terryma/vim-multiple-cursors'   " Multiple cursors like sublime
+" Plug 'terryma/vim-multiple-cursors'   " Multiple cursors like sublime
 Plug 'godlygeek/tabular'              " For alignment
 Plug 'junegunn/vim-easy-align'        " Easier alignment
 Plug 'foosoft/vim-argwrap'            " convert lists of arguments into blocks of arguments
 " Interacts with coc Plug 'tpope/vim-endwise'              " Ends control flow indentifiers
 Plug 'tpope/vim-repeat'               " Adds repeat thorugh . to other packages
-Plug 'tpope/vim-speeddating'          " Dates in vim
+" Plug 'tpope/vim-speeddating'          " Dates in vim
 
 " GUI enhancements
 Plug 'itchyny/lightline.vim'          " Better Status Bar
@@ -85,27 +85,27 @@ Plug 'neoclide/coc.nvim', {'branch': 'release'}
 Plug 'w0rp/ale'                        " Linting engine
 Plug 'maximbaz/lightline-ale'          " Lightline + Ale
 Plug 'plasticboy/vim-markdown'         " Markdown support
-Plug 'mzlogin/vim-markdown-toc'        " Markdown TOC builder
+" Plug 'mzlogin/vim-markdown-toc'        " Markdown TOC builder
 Plug 'cespare/vim-toml'                " TOML support
 Plug 'stephpy/vim-yaml'                " YAML support
 Plug 'elzr/vim-json'                   " Better JSON support
-Plug 'rust-lang/rust.vim'              " Rust support
-Plug 'glench/vim-jinja2-syntax'        " Jinja2 support
-Plug 'lervag/vimtex'                   " Latex support
-Plug 'pearofducks/ansible-vim'         " Ansible support
+" Plug 'rust-lang/rust.vim'              " Rust support
+" Plug 'glench/vim-jinja2-syntax'        " Jinja2 support
+" Plug 'lervag/vimtex'                   " Latex support
+" Plug 'pearofducks/ansible-vim'         " Ansible support
 Plug 'mechatroner/rainbow_csv'         " CSV color coding
 Plug 'ap/vim-css-color'                " CSS colors
 Plug 'frazrepo/vim-rainbow'                " Rainbow parentheses
 Plug 'vim-pandoc/vim-pandoc'           " Pandoc support
 Plug 'vim-pandoc/vim-pandoc-syntax'    " Pandoc syntax
 Plug 'chrisbra/colorizer'              " Colorize color codes
-Plug 'vim-scripts/applescript.vim'
-Plug 'pprovost/vim-ps1'
-Plug 'fatih/vim-go', { 'do': ':GoUpdateBinaries' }
-Plug 'mattn/emmet-vim'
+" Plug 'vim-scripts/applescript.vim'
+" Plug 'pprovost/vim-ps1'
+" Plug 'fatih/vim-go', { 'do': ':GoUpdateBinaries' }
+" Plug 'mattn/emmet-vim'
 " Plug 'norcalli/nvim-colorizer.lua'     " Faster colorzier (only neovim,
 " reconsider)
-Plug 'liuchengxu/vista.vim'
+" Plug 'liuchengxu/vista.vim'
 Plug 'vim-python/python-syntax'
 " Plug 'sentientmachine/pretty-vim-python'
 Plug 'isobit/vim-caddyfile'
@@ -127,12 +127,12 @@ Plug 'srcery-colors/srcery-vim'
 " Writing
 Plug 'junegunn/goyo.vim'               " Distraction free mode
 Plug 'junegunn/limelight.vim'          " Focus on current paragraph
-Plug 'rhysd/vim-grammarous'            " GrammarCheck using LanguageTool
-Plug 'ron89/thesaurus_query.vim'       " Synonym query
+" Plug 'rhysd/vim-grammarous'            " GrammarCheck using LanguageTool
+" Plug 'ron89/thesaurus_query.vim'       " Synonym query
 
 " Other
 " Plug 'wakatime/vim-wakatime'           " Wakatime time tracking
-Plug 'ihsanturk/neuron.vim'            " For neuron Zettelkasten
+" Plug 'ihsanturk/neuron.vim'            " For neuron Zettelkasten
 Plug 'liuchengxu/vim-which-key'
 Plug 'iamcco/markdown-preview.nvim', { 'do': { -> mkdp#util#install() }, 'for': ['markdown', 'vim-plug']}
 
