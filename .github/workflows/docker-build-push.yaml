@@ -15,10 +15,10 @@ jobs:
         include:
           - base_image: 'ubuntu:20.04'
             tag_suffix: 'ubuntu20.04'
-          - base_image: 'ubuntu:22.04'
-            tag_suffix: 'ubuntu22.04'
-          - base_image: 'debian:bullseye'
-            tag_suffix: 'debian-bullseye'
+          # - base_image: 'ubuntu:22.04'
+          #   tag_suffix: 'ubuntu22.04'
+          # - base_image: 'debian:bullseye'
+          #   tag_suffix: 'debian-bullseye'
     runs-on: ubuntu-latest
     permissions:
       contents: read
