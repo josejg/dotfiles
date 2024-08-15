@@ -1,12 +1,13 @@
 #!/usr/bin/env python3
 
 import signal
+
 signal.signal(signal.SIGPIPE, signal.SIG_DFL)
 signal.signal(signal.SIGINT, signal.SIG_DFL)
 
-import sys
 import difflib
-from os import get_terminal_size, environ
+import sys
+from os import environ, get_terminal_size
 
 # XXX: Since I'm using ydiff like `git diff | ydiff | less`,
 # both stdin and stdout are redirected, so we'll get inappropriate ioctl for those devices.

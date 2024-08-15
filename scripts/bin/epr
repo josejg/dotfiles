@@ -26,20 +26,20 @@ Source:
 """
 
 import curses
-import zipfile
-import locale
-import sys
-import re
-import os
-import textwrap
 import json
-import tempfile
+import locale
+import os
+import re
 import shutil
+import sys
+import tempfile
+import textwrap
 import xml.etree.ElementTree as ET
-from urllib.parse import unquote
+import zipfile
 from html import unescape
-from subprocess import run
 from html.parser import HTMLParser
+from subprocess import run
+from urllib.parse import unquote
 
 locale.setlocale(locale.LC_ALL, "")
 

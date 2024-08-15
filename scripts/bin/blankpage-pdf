@@ -30,7 +30,7 @@ except:
     sys.exit(1)
 
 try:
-    from PyPDF2 import PdfFileWriter, PdfFileReader
+    from PyPDF2 import PdfFileReader, PdfFileWriter
 except:
     print("ERROR: Missing PyPDF2 try running \n\tsudo pip install PyPDF2")
     sys.exit(1)

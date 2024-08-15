@@ -2,8 +2,9 @@
 
 import argparse
 import datetime
-import re
 import pathlib
+import re
+
 import psutil
 
 DISABLE_FILE = pathlib.Path('/tmp/quit_telegram_disabled')

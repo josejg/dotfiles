@@ -3,7 +3,6 @@
 
 import argparse
 import datetime
-
 import os
 import pathlib
 import re
@@ -12,8 +11,8 @@ import subprocess
 import sys
 import time
 from multiprocessing import Pool, Value
-from tqdm import tqdm
 
+from tqdm import tqdm
 
 parser = argparse.ArgumentParser(description='Run DSE go tests in parallel')
 

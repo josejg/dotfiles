@@ -1,9 +1,9 @@
 #!/usr/bin/env python
 
-import subprocess
-import shutil
 import argparse
 import os
+import shutil
+import subprocess
 
 devnull = os.devnull
 

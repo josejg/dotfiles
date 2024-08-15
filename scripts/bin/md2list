@@ -1,9 +1,9 @@
 #!/usr/bin/env python
 
-import subprocess
-import pathlib
 import argparse
+import pathlib
 import shutil
+import subprocess
 
 TEMPLATE_FILE = pathlib.Path.home() / "bin/latex_includes/checklist_template.tex"
 INCLUDE_FILE = 'rawlist.tex'

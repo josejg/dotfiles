@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
-from glob import glob
-import subprocess
 import os
+import subprocess
 import sys
+from glob import glob
 
 if len(sys.argv) > 1:
     files = sys.argv[1:]
