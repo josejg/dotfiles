@@ -23,6 +23,7 @@
     graph2 = log --graph --full-history --all --color --pretty=format:"%x1b[31m%h%x09%x1b[32m%d%x1b[0m%x20%s%x20%x1b[33m(%an)%x1b[0m"
     # Print brnaches by last used
     wip = for-each-ref --sort='authordate:iso8601' --format=' %(color:green)%(authordate:relative)%09%(color:white)%(refname:short)' refs/heads
+    clone2 = '!git-clone-databricks'
 [init]
 	defaultBranch = main
 [diff]
@@ -54,3 +55,9 @@
     required = true
     clean = git media clean %f
     smudge = git media smudge %f
+[maintenance]
+	repo = /Users/j.gonzalez/work/llm-foundry-private
+	repo = /Users/j.gonzalez/work/composer
+	repo = /Users/j.gonzalez/work/azul
+	repo = /Users/j.gonzalez/work/SigmaConf
+	repo = /Users/j.gonzalez/work/llm-foundry

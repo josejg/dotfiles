@@ -19,3 +19,7 @@ dotfile_bk_*
 todo.md
 terminal/.config/alacritty/themes
 terminal/.config/alacritty/current-theme.toml
+secrets.lua
+python/.ipython/profile_default/startup/03-keys.py
+python/.ipython/profile_default/db
+mac/.config/karabiner/automatic_backups

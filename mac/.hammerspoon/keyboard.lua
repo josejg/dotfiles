@@ -25,6 +25,15 @@ function openBrowser()
     k:selectMenuItem("New Window")
 end
 
+function openBrowser2()
+    -- kitty
+    k = hs.application.find("Thorium")
+    if k == nil then
+        hs.application.launchOrFocus("Thorium")
+    end
+    k:selectMenuItem("New Window")
+end
+
 function openSublime()
     os.execute('date -u +"~/Downloads/%Y%m%d%H%M%S.txt" | xargs /usr/local/bin/subl -n')
 end
@@ -40,8 +49,11 @@ hs.hotkey.bind({"cmd"}, "return", openTerminal)
 -- ⌘ + ⇧ + ⏎ Opens New Browser Window
 hs.hotkey.bind({"cmd","shift"}, "return", openBrowser)
 
+-- -- ⌘ + ⇧ + ⏎ Opens New Browser Window
+-- hs.hotkey.bind({"ctrl", "cmd","shift"}, "return", openBrowser2)
+
 -- Ctrl + ⇧ + ⏎
-hs.hotkey.bind({"ctrl", "cmd"}, "return", function() hs.application.launchOrFocus("Chromium") end)
+hs.hotkey.bind({"ctrl", "cmd"}, "return", openBrowser2)
 
 -- Ctrl + ⇧ + ⏎
 hs.hotkey.bind({"ctrl", "cmd", 'alt'}, "return", function() os.execute("/opt/homebrew/bin/firefox https://chat.openai.com") end)

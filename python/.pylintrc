@@ -143,7 +143,8 @@ disable=print-statement,
         missing-function-docstring,
         missing-class-docstring,
         missing-module-docstring,
-        line-too-long
+        line-too-long,
+        logging-format-interpolation
 
 
 # Enable the message, report, category or checker with the given id(s). You can

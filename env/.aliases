@@ -310,3 +310,16 @@ case $SHELL in
    # assume something else
    ;;
 esac
+
+
+gco-() {
+    local current_branch=$(git rev-parse --abbrev-ref HEAD)
+    local previous_branch=$(git rev-parse --abbrev-ref "@{-1}")
+
+    if [ "$current_branch" = "$previous_branch" ]; then
+        echo "No previous branch to switch to."
+        return 1
+    fi
+
+    git checkout "$previous_branch"
+}

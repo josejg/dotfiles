@@ -1,12 +1,14 @@
 #!/usr/bin/env python
 
+import os
 import pathlib
 import shutil
 import sys
+
 from PIL import Image
 
-horz_dir = pathlib.Path("/Users/josejavier/Sync/media/wallpapers/nature-horizontal")
-vert_dir = pathlib.Path("/Users/josejavier/Sync/media/wallpapers/nature-vertical")
+horz_dir = pathlib.Path(os.environ["SORTED_WALLPAPER_HORIZONTAL"])
+vert_dir = pathlib.Path(os.environ["SORTED_WALLPAPER_VERTICAL"])
 
 if __name__ == "__main__":
 
