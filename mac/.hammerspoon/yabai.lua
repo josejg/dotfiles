@@ -4,23 +4,49 @@ function bindCmd(mods, key, cmd)
     hs.hotkey.bind(mods, key, function() os.execute(cmd) end)
 end
 
+-- -- focus window
+-- bindCmd({"alt"}, "h", "/opt/homebrew/bin/yabai -m window --focus west")
+-- bindCmd({"alt"}, "j", "/opt/homebrew/bin/yabai -m window --focus south")
+-- bindCmd({"alt"}, "k", "/opt/homebrew/bin/yabai -m window --focus north")
+-- bindCmd({"alt"}, "l", "/opt/homebrew/bin/yabai -m window --focus east")
+
+-- -- swap window
+-- bindCmd({"shift", "alt"}, "h", "/opt/homebrew/bin/yabai -m window --swap west")
+-- bindCmd({"shift", "alt"}, "j", "/opt/homebrew/bin/yabai -m window --swap south")
+-- bindCmd({"shift", "alt"}, "k", "/opt/homebrew/bin/yabai -m window --swap north")
+-- bindCmd({"shift", "alt"}, "l", "/opt/homebrew/bin/yabai -m window --swap east")
+
+-- -- move window
+-- bindCmd({"shift", "cmd"}, "h", "/opt/homebrew/bin/yabai -m window --warp west")
+-- bindCmd({"shift", "cmd"}, "j", "/opt/homebrew/bin/yabai -m window --warp south")
+-- bindCmd({"shift", "cmd"}, "k", "/opt/homebrew/bin/yabai -m window --warp north")
+-- bindCmd({"shift", "cmd"}, "l", "/opt/homebrew/bin/yabai -m window --warp east")
+
+
+
 -- focus window
-bindCmd({"alt"}, "h", "/opt/homebrew/bin/yabai -m window --focus west")
-bindCmd({"alt"}, "j", "/opt/homebrew/bin/yabai -m window --focus south")
-bindCmd({"alt"}, "k", "/opt/homebrew/bin/yabai -m window --focus north")
-bindCmd({"alt"}, "l", "/opt/homebrew/bin/yabai -m window --focus east")
+bindCmd({"alt"}, "h", "/opt/homebrew/bin/yabai -m window --focus west || /opt/homebrew/bin/yabai -m display --focus west")
+bindCmd({"alt"}, "j", "/opt/homebrew/bin/yabai -m window --focus south || /opt/homebrew/bin/yabai -m display --focus south")
+bindCmd({"alt"}, "k", "/opt/homebrew/bin/yabai -m window --focus north || /opt/homebrew/bin/yabai -m display --focus north")
+bindCmd({"alt"}, "l", "/opt/homebrew/bin/yabai -m window --focus east || /opt/homebrew/bin/yabai -m display --focus east")
 
 -- swap window
-bindCmd({"shift", "alt"}, "h", "/opt/homebrew/bin/yabai -m window --swap west")
-bindCmd({"shift", "alt"}, "j", "/opt/homebrew/bin/yabai -m window --swap south")
-bindCmd({"shift", "alt"}, "k", "/opt/homebrew/bin/yabai -m window --swap north")
-bindCmd({"shift", "alt"}, "l", "/opt/homebrew/bin/yabai -m window --swap east")
+bindCmd({"shift", "alt"}, "h", "/opt/homebrew/bin/yabai -m window --swap west || $(/opt/homebrew/bin/yabai -m window --display west; /opt/homebrew/bin/yabai -m display --focus west)") 
+bindCmd({"shift", "alt"}, "j", "/opt/homebrew/bin/yabai -m window --swap south || $(/opt/homebrew/bin/yabai -m window --display south; /opt/homebrew/bin/yabai -m display --focus south)")
+bindCmd({"shift", "alt"}, "k", "/opt/homebrew/bin/yabai -m window --swap north || $(/opt/homebrew/bin/yabai -m window --display north; /opt/homebrew/bin/yabai -m display --focus north)")
+bindCmd({"shift", "alt"}, "l", "/opt/homebrew/bin/yabai -m window --swap east || $(/opt/homebrew/bin/yabai -m window --display east; /opt/homebrew/bin/yabai -m display --focus east)")
 
 -- move window
-bindCmd({"shift", "cmd"}, "h", "/opt/homebrew/bin/yabai -m window --warp west")
-bindCmd({"shift", "cmd"}, "j", "/opt/homebrew/bin/yabai -m window --warp south")
-bindCmd({"shift", "cmd"}, "k", "/opt/homebrew/bin/yabai -m window --warp north")
-bindCmd({"shift", "cmd"}, "l", "/opt/homebrew/bin/yabai -m window --warp east")
+bindCmd({"shift", "cmd"}, "h", "/opt/homebrew/bin/yabai -m window --warp west || $(/opt/homebrew/bin/yabai -m window --display west; /opt/homebrew/bin/yabai -m display --focus west)")
+bindCmd({"shift", "cmd"}, "j", "/opt/homebrew/bin/yabai -m window --warp south || $(/opt/homebrew/bin/yabai -m window --display south; /opt/homebrew/bin/yabai -m display --focus south)")
+bindCmd({"shift", "cmd"}, "k", "/opt/homebrew/bin/yabai -m window --warp north || $(/opt/homebrew/bin/yabai -m window --display north; /opt/homebrew/bin/yabai -m display --focus north)")
+bindCmd({"shift", "cmd"}, "l", "/opt/homebrew/bin/yabai -m window --warp east || $(/opt/homebrew/bin/yabai -m window --display east; /opt/homebrew/bin/yabai -m display --focus east)")
+
+-- ctrl + cmd + alt + <left/right> to move to west/east display
+bindCmd({"ctrl", "cmd", "alt"}, "left", "/opt/homebrew/bin/yabai -m window --display west; /opt/homebrew/bin/yabai -m display --focus west")
+bindCmd({"ctrl", "cmd", "alt"}, "right", "/opt/homebrew/bin/yabai -m window --display east; /opt/homebrew/bin/yabai -m display --focus east")
+
+
 
 -- balance size of windows
 -- bindCmd({"shift", "alt"}, "0", "/opt/homebrew/bin/yabai -m space --balance")
@@ -166,3 +192,6 @@ index=$(/opt/homebrew/bin/yabai -m query --spaces --display | /opt/homebrew/bin/
 
 -- Destroy current space
 bindCmd({"cmd", "alt"}, "delete", "/opt/homebrew/bin/yabai -m space --destroy")
+
+
+bindCmd({'ctrl', 'cmd', 'alt'}, 'r', '/opt/homebrew/bin/yabai --restart-service')
