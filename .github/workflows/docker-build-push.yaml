@@ -68,6 +68,11 @@ jobs:
         cache-from: type=gha
         cache-to: type=gha,mode=max
 
+    - name: Debug - Print Docker Hub image name
+      run: |
+        echo "Attempting to push to: ${{ secrets.DOCKERHUB_USERNAME }}/${{ env.IMAGE_NAME }}:${{ matrix.tag_suffix }}-latest"
+        echo "Full image name: docker.io/${{ secrets.DOCKERHUB_USERNAME }}/${{ env.IMAGE_NAME }}:${{ matrix.tag_suffix }}-latest"
+
     - name: Push to Docker Hub
       uses: docker/build-push-action@v4
       continue-on-error: true
