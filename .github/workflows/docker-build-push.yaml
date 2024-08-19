@@ -60,7 +60,7 @@ jobs:
         context: .
         file: ./Dockerfile
         push: true
-        tags: docker.io/${{ secrets.DOCKERHUB_USERNAME }}/${{ github.repository }}:${{ matrix.tag_suffix }}-latest
+        tags: ${{ github.repository }}:${{ matrix.tag_suffix }}-latest
         build-args: |
           BASE_IMAGE=${{ matrix.base_image }}
         cache-from: type=gha
