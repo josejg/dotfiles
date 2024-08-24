@@ -51,9 +51,10 @@ alias gd='git diff'
 alias gsu='git stash && git pull && git stash pop'
   # Note that gs is also ghostscript
 alias ghostscript="/usr/local/bin/gs"
-function gD(){
-    git diff $@ | ydiff
+function gds(){
+    git diff $@ | delta -s
 }
+alias gdt="git -c diff.external=difft diff"
 
 ## Jupyter
 alias jc="jupyter console"
