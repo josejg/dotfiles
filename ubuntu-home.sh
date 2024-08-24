@@ -61,9 +61,10 @@ cd .dotfiles
 ./setup_all.sh
 
 # NEOVIM - PlugInstall
-/root/bin/nvim --headless +PlugInstall +qall
-/root/bin/nvim --headless +"CocInstall -sync coc-explorer coc-git coc-highlight coc-pyright coc-json coc-sh coc-yaml" +qall
-/root/bin/nvim --headless +CocUpdateSync +qall
+NVIM="$HOME/.local/bin/nvim"
+$NVIM --headless +PlugInstall +qall
+$NVIM --headless +"CocInstall -sync coc-explorer coc-git coc-highlight coc-pyright coc-json coc-sh coc-yaml" +qall
+$NVIM --headless +CocUpdateSync +qall
 
 # # Cleanup
 if [ -n "${CLEANUP:-}" ]; then
