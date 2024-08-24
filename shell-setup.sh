@@ -135,6 +135,9 @@ fi
 #     $HOME/.cargo/bin/cargo install $crate
 # done
 
+#######################
+# Alacritty themes
+#######################
 
 if [[ ! -d $HOME/.config/alacritty/themes ]]; then
     mkdir -p $HOME/.config/alacritty/

@@ -62,6 +62,8 @@ cd .dotfiles
 
 # NEOVIM - PlugInstall
 NVIM="$LOCAL_BIN/nvim"
+export PATH="$HOME/.neovim/node/bin:$PATH"
+export PATH="$HOME/.neovim/py3/bin/:$PATH"
 $NVIM --headless +PlugInstall +qall
 $NVIM --headless +"CocInstall -sync coc-explorer coc-git coc-highlight coc-pyright coc-json coc-sh coc-yaml" +qall
 $NVIM --headless +CocUpdateSync +qall
