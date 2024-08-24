@@ -33,8 +33,8 @@ LOCAL_BIN="$HOME/.local/bin"
 mkdir -p "$LOCAL_BIN"
 
 # DIFF-SO-FANCY
-# Portable Perl script
-if [[ ! -f "$HOME/bin/diff-so-fancy" ]]; then
+if [[ ! -f "$LOCAL_BIN/diff-so-fancy" ]]; then
+    # Portable Perl script
     curl -L -o "$LOCAL_BIN/diff-so-fancy" https://github.com/so-fancy/diff-so-fancy/releases/download/v1.4.4/diff-so-fancy
     chmod +x $HOME/bin/diff-so-fancy
 fi
