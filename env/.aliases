@@ -56,7 +56,7 @@ function gds(){
 }
 alias gdt="git -c diff.external=difft diff"
 function gacp() {
-    git add $@ && git commit -m . && git push
+    git add $@ && git commit -m fix && git push
 }
 
 ## Jupyter

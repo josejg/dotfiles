@@ -15,7 +15,7 @@ wget -q https://github.com/neovim/neovim/releases/latest/download/nvim-linux64.t
 tar -xzf nvim-linux64.tar.gz
 mv nvim-linux64 "$HOME/.local/nvim"
 cd $LOCAL_BIN
-ln -s ../.local/nvim/bin/nvim ./nvim
+ln -s "../nvim/bin/nvim" ./nvim
 
 # Fd-find
 cd /tmp/downloads
@@ -61,7 +61,7 @@ cd .dotfiles
 ./setup_all.sh
 
 # NEOVIM - PlugInstall
-NVIM="$HOME/.local/bin/nvim"
+NVIM="$LOCAL_BIN/nvim"
 $NVIM --headless +PlugInstall +qall
 $NVIM --headless +"CocInstall -sync coc-explorer coc-git coc-highlight coc-pyright coc-json coc-sh coc-yaml" +qall
 $NVIM --headless +CocUpdateSync +qall
