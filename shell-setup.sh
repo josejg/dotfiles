@@ -36,7 +36,7 @@ mkdir -p "$LOCAL_BIN"
 if [[ ! -f "$LOCAL_BIN/diff-so-fancy" ]]; then
     # Portable Perl script
     curl -L -o "$LOCAL_BIN/diff-so-fancy" https://github.com/so-fancy/diff-so-fancy/releases/download/v1.4.4/diff-so-fancy
-    chmod +x $HOME/bin/diff-so-fancy
+    chmod +x "$LOCAL_BIN/diff-so-fancy"
 fi
 
 

@@ -22,7 +22,7 @@ function append_path() {
 
 prepend_path "/usr/local/bin"
 prepend_path "/usr/local/sbin"
-prepend_path "$HOME/bin"           # Custom scripts
+prepend_path "$HOME/.dotfiles/scripts/bin"           # Custom scripts
 prepend_path "$HOME/.secbin"       # Secret custom scripts
 prepend_path "$HOME/.local/bin"
 prepend_path "/usr/local/opt/ruby/bin"
