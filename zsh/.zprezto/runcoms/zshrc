@@ -73,6 +73,21 @@ typeset -g POWERLEVEL9K_INSTANT_PROMPT=quiet
 [[ ! -f ~/.p10k.zsh ]] || source ~/.p10k.zsh
 
 
+# For env with run name
+if [ -f /tmp/runname ]; then
+    # function prompt_runname() {
+    #     p10k segment -t "@ $(cat /tmp/runname)"
+    # }
+
+    # POWERLEVEL9K_RIGHT_PROMPT_ELEMENTS+=runname
+    # POWERLEVEL9K_RUNNAME_FOREGROUND=180
+
+    function prompt_context() {
+        p10k segment -t "@ $(cat /tmp/runname)"
+    }
+fi
+
+
 # >>> conda initialize >>>
 # !! Contents within this block are managed by 'conda init' !!
 __conda_setup="$('/opt/miniconda/bin/conda' 'shell.zsh' 'hook' 2> /dev/null)"
