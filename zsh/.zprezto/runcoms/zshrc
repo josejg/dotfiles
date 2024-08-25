@@ -114,3 +114,9 @@ if [ -f ~/.aliases ]; then
     source ~/.aliases
 fi
 
+
+# if $HOME/.config/github-copilot/apps.json does not exist
+# and COPILOT_TOKEN is set, create the file
+if [[ -n $COPILOT_TOKEN ]] && [[ ! -f $HOME/.config/github-copilot/apps.json ]]; then
+    echo "$COPILOT_TOKEN" > $HOME/.config/github-copilot/apps.json
+fi
