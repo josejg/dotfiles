@@ -119,4 +119,5 @@ fi
 # and COPILOT_TOKEN is set, create the file
 if [[ -n $COPILOT_TOKEN ]] && [[ ! -f $HOME/.config/github-copilot/apps.json ]]; then
     echo "$COPILOT_TOKEN" > $HOME/.config/github-copilot/apps.json
+    nvim --headless +"Copilot setup" +qall
 fi
