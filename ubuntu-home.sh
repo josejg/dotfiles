@@ -25,7 +25,7 @@ mv fd-v10.2.0-x86_64-unknown-linux-gnu/fd "$LOCAL_BIN/fd"
 
 # Ripgrep
 cd /tmp/downloads
-wget -q https://github.com/BurntSushi/ripgrep/releases/download/14.1.0/ripgrep-14.1.0-aarch64-unknown-linux-gnu.tar.gz
+wget -q https://github.com/BurntSushi/ripgrep/releases/download/14.1.0/ripgrep-14.1.0-x86_64-unknown-linux-musl.tar.gz
 tar -xzf ripgrep-14.1.0-aarch64-unknown-linux-gnu.tar.gz
 mv ripgrep-14.1.0-aarch64-unknown-linux-gnu/rg "$LOCAL_BIN/rg"
 
