@@ -99,6 +99,7 @@ if ! safe_git_clone "https://github.com/sorin-ionescu/prezto.git" "$ZPREZTO_DIR"
     git submodule update --init --recursive
     cd - > /dev/null
 else
+    git submodule update --init --recursive
     # Only create symlinks on fresh install
     backup_file ~/.zshrc
     backup_file ~/.zprofile
