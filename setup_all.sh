@@ -47,7 +47,7 @@ function safe_stow() {
     if [ ! -d "$program" ]; then
         echo "Warning: Program directory $program does not exist, skipping"
         return 1
-    }
+    fi
     
     # First try to stow normally
     if stow -v --target="$target" "$program" 2>/dev/null; then
