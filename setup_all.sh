@@ -30,14 +30,11 @@ function safe_backup() {
         if [ ! -L "$path" ]; then  # Only backup if it's not a symlink
             echo "Backing up $path"
             mv "$path" "$backup_dir/"
-            return 0
         else
             echo "Removing existing symlink $path"
             rm "$path"
-            return 1
         fi
     fi
-    return 1
 }
 
 function safe_stow() {
