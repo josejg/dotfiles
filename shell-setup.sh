@@ -127,11 +127,11 @@ mkdir -p "$NVIM"
 # Create Python3 environment
 if [[ ! -d "$NVIM/py3" ]]; then
     python3 -m venv "$NVIM/py3"
-    "$NVIM/py3/bin/pip" install --upgrade pip
-    "$NVIM/py3/bin/pip" install neovim 'python-language-server[all]' pylint isort jedi flake8 black yapf ruff
+    "$NVIM/py3/bin/pip" install -q --upgrade pip
+    "$NVIM/py3/bin/pip" install -q neovim 'python-language-server[all]' pylint isort jedi flake8 black yapf ruff
 else
     # Update packages in existing environment
-    "$NVIM/py3/bin/pip" install --upgrade neovim 'python-language-server[all]' pylint isort jedi flake8 black yapf ruff
+    "$NVIM/py3/bin/pip" install -q --upgrade neovim 'python-language-server[all]' pylint isort jedi flake8 black yapf ruff
 fi
 
 # Create node env
