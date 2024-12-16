@@ -98,6 +98,7 @@ Plug 'ap/vim-css-color'                " CSS colors
 Plug 'frazrepo/vim-rainbow'                " Rainbow parentheses
 Plug 'vim-pandoc/vim-pandoc'           " Pandoc support
 Plug 'vim-pandoc/vim-pandoc-syntax'    " Pandoc syntax
+Plug 'NoahTheDuke/vim-just'         " Justfile support
 Plug 'chrisbra/colorizer'              " Colorize color codes
 " Plug 'vim-scripts/applescript.vim'
 " Plug 'pprovost/vim-ps1'
