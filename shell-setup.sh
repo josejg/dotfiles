@@ -3,29 +3,70 @@ set -x
 set -eu
 
 #######################
+# Helper Functions
+#######################
+
+function safe_git_clone() {
+    local repo=$1
+    local dest=$2
+    if [[ ! -d "$dest" ]]; then
+        git clone "$repo" "$dest"
+        return 0
+    fi
+    return 1
+}
+
+function pull_repo() {
+    local dir=$1
+    if [[ -d "$dir/.git" ]]; then
+        cd "$dir"
+        git pull
+        cd - > /dev/null
+    else
+        echo "Warning: $dir is not a git repository"
+    fi
+}
+
+function safe_link() {
+    local source=$1
+    local target=$2
+    if [[ -L "$target" ]]; then
+        rm "$target"
+    elif [[ -f "$target" ]]; then
+        mv "$target" "${target}.bk"
+    fi
+    ln -s "$source" "$target"
+}
+
+function backup_file() {
+    local file=$1
+    if [[ -f "$file" && ! -L "$file" ]]; then
+        mv "$file" "${file}.bk"
+    fi
+}
+
+#######################
 # BIN
 #######################
 
-function pull_repo() {
-    cd "$1"
-    git pull
-    cd -
-}
-
 mkdir -p "$HOME/bin"
-cd "$HOME" 
+cd "$HOME"
 
 # FASD
 if [[ ! -f "$HOME/bin/fasd" ]]; then
-    git clone https://github.com/clvv/fasd.git /tmp/fasd
-    cd /tmp/fasd
+    TEMP_DIR=$(mktemp -d)
+    trap 'rm -rf "$TEMP_DIR"' EXIT
+    safe_git_clone "https://github.com/clvv/fasd.git" "$TEMP_DIR/fasd"
+    cd "$TEMP_DIR/fasd"
     PREFIX=$HOME make install
-    cd -
+    cd - > /dev/null
 fi
 
 # FZF
+if ! safe_git_clone "https://github.com/junegunn/fzf.git" "$HOME/.fzf"; then
+    pull_repo "$HOME/.fzf"
+fi
 if [[ ! -f "$HOME/.fzf/bin/fzf" ]]; then
-    git clone https://github.com/junegunn/fzf.git $HOME/.fzf
     yes | $HOME/.fzf/install
 fi
 
@@ -34,114 +75,92 @@ mkdir -p "$LOCAL_BIN"
 
 # DIFF-SO-FANCY
 if [[ ! -f "$LOCAL_BIN/diff-so-fancy" ]]; then
-    # Portable Perl script
     curl -L -o "$LOCAL_BIN/diff-so-fancy" https://github.com/so-fancy/diff-so-fancy/releases/download/v1.4.4/diff-so-fancy
     chmod +x "$LOCAL_BIN/diff-so-fancy"
 fi
-
-
 
 #######################
 # TMUX
 #######################
 
-if [[ ! -d $HOME/.tmux/plugins/tpm ]]; then
-    mkdir -p $HOME/.tmux/plugins
-    git clone https://github.com/tmux-plugins/tpm $HOME/.tmux/plugins/tpm
+TMUX_TPM_DIR="$HOME/.tmux/plugins/tpm"
+if ! safe_git_clone "https://github.com/tmux-plugins/tpm" "$TMUX_TPM_DIR"; then
+    pull_repo "$TMUX_TPM_DIR"
 fi
-pull_repo $HOME/.tmux/plugins/tpm
-
 
 #######################
 # ZSH
 #######################
 
-if [[ ! -d $HOME/.zprezto ]]; then
-    git clone --recursive https://github.com/sorin-ionescu/prezto.git "${ZDOTDIR:-$HOME}/.zprezto"
-
-    if [[ -f ~/.zshrc ]]; then
-        mv ~/.zshrc ~/.zshrc.bk
-    fi
-
-    if [[ -f ~/.zprofile ]]; then
-        mv ~/.zprofile ~/.zprofile.bk
-    fi
+ZPREZTO_DIR="${ZDOTDIR:-$HOME}/.zprezto"
+if ! safe_git_clone "https://github.com/sorin-ionescu/prezto.git" "$ZPREZTO_DIR"; then
+    cd "$ZPREZTO_DIR"
+    git pull
+    git submodule update --init --recursive
+    cd - > /dev/null
+else
+    cd "$ZPREZTO_DIR"
+    git submodule update --init --recursive
+    cd -
+    # Only create symlinks on fresh install
+    backup_file ~/.zshrc
+    backup_file ~/.zprofile
 
     setopt EXTENDED_GLOB
     for rcfile in "${ZDOTDIR:-$HOME}"/.zprezto/runcoms/^README.md(.N); do
-      ln -s "$rcfile" "${ZDOTDIR:-$HOME}/.${rcfile:t}"
+        safe_link "$rcfile" "${ZDOTDIR:-$HOME}/.${rcfile:t}"
     done
 fi
-cd $HOME/.zprezto
-git pull
-git submodule update --init --recursive
-cd - 
 
-mkdir -p $HOME/.zsh
+mkdir -p "$HOME/.zsh"
 
 # Fast syntax highlighting
-if [[ ! -d $HOME/.zsh/fast-syntax-highlighting ]]; then
-    git clone https://github.com/zdharma-continuum/fast-syntax-highlighting.git $HOME/.zsh/fast-syntax-highlighting
+FSH_DIR="$HOME/.zsh/fast-syntax-highlighting"
+if ! safe_git_clone "https://github.com/zdharma-continuum/fast-syntax-highlighting.git" "$FSH_DIR"; then
+    pull_repo "$FSH_DIR"
 fi
-pull_repo $HOME/.zsh/fast-syntax-highlighting
 
 #######################
 # NEOVIM
 #######################
 
-NVIM=$HOME/.neovim
-mkdir -p $NVIM
-
-# AppImage in case the computer does not have a fallback nvim (appimage does not self update)
-# AppImage does not work in Docker
-# if command -v nvim > /dev/null; then
-#     echo "NVIM appears to be installed"
-# else
-#     mkdir -p $NVIM/bin
-#     cd $NVIM/bin
-#     curl -LO https://github.com/neovim/neovim/releases/latest/download/nvim.appimage
-#     chmod u+x nvim.appimage
-#     mv nvim.appimage nvim
-#     cd -
-# fi
+NVIM="$HOME/.neovim"
+mkdir -p "$NVIM"
 
 # Create Python3 environment
-if [[ ! -d $NVIM/py3 ]]; then
-    python3 -m venv $NVIM/py3
-    $NVIM/py3/bin/pip install neovim 'python-language-server[all]' pylint isort jedi flake8 black yapf ruff
+if [[ ! -d "$NVIM/py3" ]]; then
+    python3 -m venv "$NVIM/py3"
+    "$NVIM/py3/bin/pip" install -q --upgrade pip
+    "$NVIM/py3/bin/pip" install -q neovim 'python-language-server[all]' pylint isort jedi flake8 black yapf ruff
+else
+    # Update packages in existing environment
+    "$NVIM/py3/bin/pip" install -q --upgrade neovim 'python-language-server[all]' pylint isort jedi flake8 black yapf ruff
 fi
 
 # Create node env
-if [[ ! -d $NVIM/node ]]; then
-    mkdir -p $NVIM/node
-    NODE_SCRIPT=/tmp/install-node.sh
-    curl -sL install-node.now.sh/lts -o $NODE_SCRIPT
-    chmod +x $NODE_SCRIPT
-    PREFIX=$NVIM/node $NODE_SCRIPT -y
+if [[ ! -d "$NVIM/node" ]]; then
+    mkdir -p "$NVIM/node"
+    NODE_SCRIPT=$(mktemp)
+    curl -sL install-node.now.sh/lts -o "$NODE_SCRIPT"
+    chmod +x "$NODE_SCRIPT"
+    PREFIX="$NVIM/node" "$NODE_SCRIPT" -y
+    rm "$NODE_SCRIPT"
+    
     PATH="$NVIM/node/bin:$PATH"
-    npm install -g neovim
+    if ! npm list -g neovim > /dev/null 2>&1; then
+        npm install -g neovim
+    fi
+else
+    # Update neovim package in existing environment
+    PATH="$NVIM/node/bin:$PATH"
+    npm update -g neovim
 fi
-
-#######################
-# RUST
-#######################
-
-# if [[ ! -d $HOME/.rustup ]]; then
-#     curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
-# fi
-
-# for crate in bat fd-find ripgrep exa tealdeer procs ytop hyperfine bandwhich
-# do
-#     $HOME/.cargo/bin/cargo install $crate
-# done
 
 #######################
 # Alacritty themes
 #######################
 
-if [[ ! -d $HOME/.config/alacritty/themes ]]; then
-    mkdir -p $HOME/.config/alacritty/
-    git clone https://github.com/JJGO/alacritty-theme.git $HOME/.config/alacritty/themes
+ALACRITTY_THEMES_DIR="$HOME/.config/alacritty/themes"
+if ! safe_git_clone "https://github.com/JJGO/alacritty-theme.git" "$ALACRITTY_THEMES_DIR"; then
+    pull_repo "$ALACRITTY_THEMES_DIR"
 fi
-
-pull_repo $HOME/.config/alacritty/themes
