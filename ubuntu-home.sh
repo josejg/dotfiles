@@ -38,7 +38,7 @@ if [ ! -d "$HOME/.local/nvim" ]; then
     wget -q https://github.com/neovim/neovim/releases/latest/download/nvim-linux-x86_64.tar.gz
     tar -xzf nvim-linux-x86_64.tar.gz
     rm -rf "$HOME/.local/nvim"
-    mv nvim-linux64 "$HOME/.local/nvim"
+    mv nvim-linux-x86_64 "$HOME/.local/nvim"
     safe_link "../nvim/bin/nvim" "$LOCAL_BIN/nvim"
 fi
 
