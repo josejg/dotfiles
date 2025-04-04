@@ -31,8 +31,8 @@ jobs:
     strategy:
       matrix:
         include:
-          - base_image: ${{ github.event_name == 'workflow_dispatch' && inputs.base_image || 'ubuntu:20.04' }}
-            tag_suffix: ${{ github.event_name == 'workflow_dispatch' && inputs.tag_suffix || 'ubuntu20.04' }}
+          - base_image: ${{ github.event_name == 'workflow_dispatch' && inputs.base_image || 'ubuntu:22.04' }}
+            tag_suffix: ${{ github.event_name == 'workflow_dispatch' && inputs.tag_suffix || 'ubuntu22.04' }}
           # - base_image: 'ubuntu:22.04'
           #   tag_suffix: 'ubuntu22.04'
 
