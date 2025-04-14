@@ -77,13 +77,25 @@ hs.hotkey.bind({"cmd", "alt"}, "tab", function() hs.hints.windowHints() end)
 hs.hotkey.bind(hyper, "F", function() hs.window.focusedWindow():toggleZoom() end)
 
 -- Ctrl+Cmd + Escape -- Sleeps the Computer
-hs.hotkey.bind({"ctrl", "cmd"}, "escape", function() hs.caffeinate.systemSleep() end)
+hs.hotkey.bind({"ctrl", "shift"}, "escape", function() hs.caffeinate.systemSleep() end)
 
 -- Ctrl+Shift + Escape -- Sleeps the displays
-hs.hotkey.bind({"ctrl", "shift"}, "escape", function() os.execute("pmset displaysleepnow") end)
+-- hs.hotkey.bind({"ctrl", "shift"}, "escape", function() os.execute("pmset displaysleepnow") end)
 
 -- Ctrl+Cmd+Alt + P -- Toggle Caps Lock
 hs.hotkey.bind({"ctrl", "cmd", "alt"}, "P", function() hs.hid.capslock.toggle() end)
 
 -- Capture OCR to clipboard
 hs.hotkey.bind({"ctrl", "cmd", "alt"}, "O", function() os.execute("~/bin/ocr") end)
+
+
+-- Load the required modules
+local hotkey = require "hs.hotkey"
+local caffeinate = require "hs.caffeinate"
+
+-- Define a hotkey to activate the screensaver
+-- You can change cmd+alt+s to any combination you prefer
+hotkey.bind({"cmd", "ctrl"}, "escape", function()
+  -- Launch the screensaver
+  caffeinate.startScreensaver()
+end)
