@@ -3,6 +3,24 @@ name: Docker Build and Push
 on:
   push:
     branches: [ "main" ]
+  workflow_dispatch:
+    inputs:
+      base_image:
+        description: 'Base image to use'
+        required: false
+        default: 'ubuntu:20.04'
+        type: choice
+        options:
+          - 'ubuntu:20.04'
+          - 'ubuntu:22.04'
+      tag_suffix:
+        description: 'Tag suffix for the image'
+        required: false
+        default: 'ubuntu20.04'
+        type: choice
+        options:
+          - 'ubuntu20.04'
+          - 'ubuntu22.04'
 
 env:
   IMAGE_NAME: ${{ github.repository }}
@@ -13,8 +31,8 @@ jobs:
     strategy:
       matrix:
         include:
-          - base_image: 'ubuntu:20.04'
-            tag_suffix: 'ubuntu20.04'
+          - base_image: ${{ github.event_name == 'workflow_dispatch' && inputs.base_image || 'ubuntu:22.04' }}
+            tag_suffix: ${{ github.event_name == 'workflow_dispatch' && inputs.tag_suffix || 'ubuntu22.04' }}
           # - base_image: 'ubuntu:22.04'
           #   tag_suffix: 'ubuntu22.04'
 
