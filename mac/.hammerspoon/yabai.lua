@@ -4,6 +4,18 @@ function bindCmd(mods, key, cmd)
     hs.hotkey.bind(mods, key, function() os.execute(cmd) end)
 end
 
+-- Toggle yabai service function
+hs.hotkey.bind({"alt"}, "q", function()
+    local output = os.execute("pgrep yabai > /dev/null")
+    if output then
+        os.execute("/opt/homebrew/bin/yabai --stop-service")
+        hs.alert.show("Yabai service stopped")
+    else
+        os.execute("/opt/homebrew/bin/yabai --start-service")
+        hs.alert.show("Yabai service started")
+    end
+end)
+
 -- -- focus window
 -- bindCmd({"alt"}, "h", "/opt/homebrew/bin/yabai -m window --focus west")
 -- bindCmd({"alt"}, "j", "/opt/homebrew/bin/yabai -m window --focus south")
