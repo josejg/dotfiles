@@ -150,6 +150,12 @@ fi
 
 export ET_NO_TELEMETRY=1
 
+
+# Language
+export LANGUAGE=en_US.UTF-8
+export LC_ALL=en_US.UTF-8
+export LANG=en_US.UTF-8
+
 ###########################################################################################################################
 
 # OS specific
@@ -186,4 +192,10 @@ esac
 # LOCAL ENV
 if [ -f ~/.local-env ]; then
     source ~/.local-env
+fi
+
+
+# Ring
+if [ -f ~/.ring ]; then
+    source ~/.ring
 fi

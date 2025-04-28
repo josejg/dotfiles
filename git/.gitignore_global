@@ -22,4 +22,5 @@ node_modules
 .sass-cache
 
 # RSA keys, just in case
-*rsa*
+id_rsa*
+id_25519*

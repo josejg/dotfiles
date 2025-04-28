@@ -327,3 +327,41 @@ gco-() {
 
     git checkout "$previous_branch"
 }
+
+alias yt-dlp8="yt-dlp -f 'bestvideo[height<=1080]+bestaudio/best[height<=1080]' --merge-output-format mp4"
+alias llmf="llm --model openrouter/google/gemma-3-27b-it:free"
+
+
+
+function sort-yaml(){
+     yq -P 'sort_keys(..)' "$1" #  >! "sorted_$1"
+}
+
+function diff-yaml(){
+    diff -y <( yq -P 'sort_keys(..)' "$1") <( yq -P 'sort_keys(..)' "$2") | colordiff
+}
+
+function vdiff-yaml(){
+    yq -P 'sort_keys(..)' "$1" >! ".sorted_$1"
+    yq -P 'sort_keys(..)' "$2" >! ".sorted_$2"
+    nvim -d ".sorted_$1" ".sorted_$2"
+    \rm ".sorted_$1" ".sorted_$2"
+}
+
+function yd(){
+    if [ $# -ne 2 ]; then
+        echo "YAML diff - Usage: yd <file1> <file2>"
+        return 1
+    fi
+    difft <(yaml-sort-as $1 $2) $2
+}
+
+function vyd(){
+    if [ $# -ne 2 ]; then
+        echo "VIM YAML diff - Usage: vyd <file1> <file2>"
+        return 1
+    fi
+    yaml-sort-as $1 $2 -o ".sorted_$1"
+    nvim -d ".sorted_$1" $2
+    \rm ".sorted_$1"
+}
