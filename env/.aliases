@@ -69,6 +69,8 @@ alias jn-b="jupyter notebook --no-browser"
 alias yt="yt-dlp"
 alias yta="yt-dlp --extract-audio --audio-format mp3"
 alias ytad="yt-dlp --extract-audio --audio-format mp3 --write-description --add-metadata --embed-thumbnail --write-info-json"
+alias yt-dlp8="yt-dlp -f 'bestvideo[height<=1080]+bestaudio/best[height<=1080]' --merge-output-format mp4"
+alias llmf="llm --model openrouter/google/gemma-3-27b-it:free"
 alias gdl="gallery-dl"
 
 ## Misc
@@ -102,19 +104,50 @@ stt_title () { setTerminalText 2 $@; }
 tn () { stt_tab $@ && tmux new -s $@; }
 ta () { stt_tab $@ && tmux a -t $@; }
 
+function sort-yaml(){
+     yq -P 'sort_keys(..)' "$1" #  >! "sorted_$1"
+}
 
+function diff-yaml(){
+    diff -y <( yq -P 'sort_keys(..)' "$1") <( yq -P 'sort_keys(..)' "$2") | colordiff
+}
 
-###########################################################################################################################
+function vdiff-yaml(){
+    yq -P 'sort_keys(..)' "$1" >! ".sorted_$1"
+    yq -P 'sort_keys(..)' "$2" >! ".sorted_$2"
+    nvim -d ".sorted_$1" ".sorted_$2"
+    \rm ".sorted_$1" ".sorted_$2"
+}
 
-# SECRET ALIASES
-if [ -f ~/.secret-aliases ]; then
-    source ~/.secret-aliases
-fi
+function yd(){
+    if [ $# -ne 2 ]; then
+        echo "YAML diff - Usage: yd <file1> <file2>"
+        return 1
+    fi
+    difft <(yaml-sort-as $1 $2) $2
+}
 
-# LOCAL ALIASES
-if [ -f ~/.local-aliases ]; then
-    source ~/.local-aliases
-fi
+function vyd(){
+    if [ $# -ne 2 ]; then
+        echo "VIM YAML diff - Usage: vyd <file1> <file2>"
+        return 1
+    fi
+    yaml-sort-as $1 $2 -o ".sorted_$1"
+    nvim -d ".sorted_$1" $2
+    \rm ".sorted_$1"
+}
+
+function notify-complete() {
+    pid=$1
+    msg=$(ps -o cmd fp $pid | tail -n 1)
+    tail --pid=$pid -f /dev/null && notifiers telegram notify "$msg"
+}
+
+function res(){echo $1 &&  mediainfo $1 | grep -i height}
+alias docker="DOCKER_BUILDKIT=1 docker"
+
+alias tel="notifiers telegram notify"
+alias push="notifiers pushover notify"
 
 ###########################################################################################################################
 
@@ -286,6 +319,23 @@ case "$(uname -s)" in
      ;;
 
    Linux)
+    alias sss='sudo systemctl status'
+    alias ssd='sudo systemctl stop'
+    alias ssu='sudo systemctl start'
+    alias ssr='sudo systemctl restart'
+    alias sj='sudo journalctl'
+    alias agi='sudo apt install -y'
+    alias svim='sudo -Es vim'
+
+    logs() {
+        if [ -z "$1" ]; then
+            echo "Usage: logs <service-name>"
+            echo "Example: logs docker"
+            return 1
+        fi
+        sudo journalctl -u "$1" -f
+    }
+
      # echo 'Linux'
      ;;
 
@@ -314,54 +364,3 @@ case $SHELL in
    # assume something else
    ;;
 esac
-
-
-gco-() {
-    local current_branch=$(git rev-parse --abbrev-ref HEAD)
-    local previous_branch=$(git rev-parse --abbrev-ref "@{-1}")
-
-    if [ "$current_branch" = "$previous_branch" ]; then
-        echo "No previous branch to switch to."
-        return 1
-    fi
-
-    git checkout "$previous_branch"
-}
-
-alias yt-dlp8="yt-dlp -f 'bestvideo[height<=1080]+bestaudio/best[height<=1080]' --merge-output-format mp4"
-alias llmf="llm --model openrouter/google/gemma-3-27b-it:free"
-
-
-
-function sort-yaml(){
-     yq -P 'sort_keys(..)' "$1" #  >! "sorted_$1"
-}
-
-function diff-yaml(){
-    diff -y <( yq -P 'sort_keys(..)' "$1") <( yq -P 'sort_keys(..)' "$2") | colordiff
-}
-
-function vdiff-yaml(){
-    yq -P 'sort_keys(..)' "$1" >! ".sorted_$1"
-    yq -P 'sort_keys(..)' "$2" >! ".sorted_$2"
-    nvim -d ".sorted_$1" ".sorted_$2"
-    \rm ".sorted_$1" ".sorted_$2"
-}
-
-function yd(){
-    if [ $# -ne 2 ]; then
-        echo "YAML diff - Usage: yd <file1> <file2>"
-        return 1
-    fi
-    difft <(yaml-sort-as $1 $2) $2
-}
-
-function vyd(){
-    if [ $# -ne 2 ]; then
-        echo "VIM YAML diff - Usage: vyd <file1> <file2>"
-        return 1
-    fi
-    yaml-sort-as $1 $2 -o ".sorted_$1"
-    nvim -d ".sorted_$1" $2
-    \rm ".sorted_$1"
-}
