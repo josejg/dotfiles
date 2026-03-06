@@ -30,6 +30,10 @@ setopt INC_APPEND_HISTORY     # write immediately, not on exit
 # ---------------------------------------------------------------------------
 # Completion
 # ---------------------------------------------------------------------------
+# Extra completions (must be in fpath before compinit)
+[[ -d $HOME/.zsh/zsh-completions/src ]] && fpath=($HOME/.zsh/zsh-completions/src $fpath)
+fpath=(/usr/local/share/zsh-completions $fpath)
+
 autoload -Uz compinit
 # Rebuild compdump once per day
 if [[ -n ~/.zcompdump(#qN.mh+24) ]]; then
@@ -51,8 +55,6 @@ zstyle -e ':completion:*:hosts' hosts 'reply=(
   ${=${=${=${${(f)"$(cat {/etc/ssh/ssh_,~/.ssh/}known_hosts(|2)(N) 2> /dev/null)"}%%[#| ]*}//\]:[0-9]*/ }//,/ }//\[/ }
   ${=${${${${(@M)${(f)"$(cat ~/.ssh/config 2> /dev/null)"}:#Host *}#Host }:#*\**}:#*\?*}}
 )'
-
-fpath=(/usr/local/share/zsh-completions $fpath)
 export COMP_KNOWN_HOSTS_WITH_HOSTFILE=""
 
 # ---------------------------------------------------------------------------
@@ -108,6 +110,35 @@ if [[ -f $HOME/.zsh/zsh-history-substring-search/zsh-history-substring-search.zs
   bindkey '^[[A' history-substring-search-up
   bindkey '^[[B' history-substring-search-down
 fi
+
+if [[ -f $HOME/.zsh/zsh-you-should-use/you-should-use.plugin.zsh ]]; then
+  source $HOME/.zsh/zsh-you-should-use/you-should-use.plugin.zsh
+fi
+
+# ---------------------------------------------------------------------------
+# Sudo widget (Esc-Esc to toggle sudo prefix, from OMZ sudo plugin)
+# ---------------------------------------------------------------------------
+sudo-command-line() {
+  [[ -z $BUFFER ]] && LBUFFER="$(fc -ln -1)"
+  if [[ $BUFFER == sudo\ * ]]; then
+    LBUFFER="${LBUFFER#sudo }"
+  else
+    LBUFFER="sudo $LBUFFER"
+  fi
+}
+zle -N sudo-command-line
+bindkey '\e\e' sudo-command-line
+
+# ---------------------------------------------------------------------------
+# Colored man pages (via LESS_TERMCAP)
+# ---------------------------------------------------------------------------
+export LESS_TERMCAP_mb=$'\e[1;31m'      # begin bold
+export LESS_TERMCAP_md=$'\e[1;36m'      # begin blink (section headers)
+export LESS_TERMCAP_me=$'\e[0m'         # end bold/blink
+export LESS_TERMCAP_so=$'\e[01;44;33m'  # begin reverse (status line)
+export LESS_TERMCAP_se=$'\e[0m'         # end reverse
+export LESS_TERMCAP_us=$'\e[1;32m'      # begin underline
+export LESS_TERMCAP_ue=$'\e[0m'         # end underline
 
 # ---------------------------------------------------------------------------
 # FZF

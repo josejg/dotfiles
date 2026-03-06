@@ -1,5 +1,6 @@
 #!/bin/zsh
 set -e
+export TERM=${TERM:-xterm-256color}
 
 echo "=== Stow check ==="
 ls -la ~/.zshrc ~/.zprofile ~/.zshenv ~/.zlogin ~/.common ~/.aliases ~/.p10k.zsh
@@ -11,6 +12,8 @@ for p in \
   "$HOME/.zsh/zsh-autosuggestions/zsh-autosuggestions.zsh" \
   "$HOME/.zsh/zsh-history-substring-search/zsh-history-substring-search.zsh" \
   "$HOME/.zsh/powerlevel10k/powerlevel10k.zsh-theme" \
+  "$HOME/.zsh/zsh-completions/src" \
+  "$HOME/.zsh/zsh-you-should-use/you-should-use.plugin.zsh" \
   "$HOME/.fzf.zsh"; do
   name=${p:t}
   [[ -f $p ]] && echo "$name: OK" || echo "$name: MISSING"

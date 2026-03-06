@@ -102,6 +102,18 @@ if ! safe_git_clone "https://github.com/zsh-users/zsh-history-substring-search.g
     pull_repo "$ZHSS_DIR"
 fi
 
+# Zsh completions
+ZC_DIR="$HOME/.zsh/zsh-completions"
+if ! safe_git_clone "https://github.com/zsh-users/zsh-completions.git" "$ZC_DIR"; then
+    pull_repo "$ZC_DIR"
+fi
+
+# You should use
+YSU_DIR="$HOME/.zsh/zsh-you-should-use"
+if ! safe_git_clone "https://github.com/MichaelAquilina/zsh-you-should-use.git" "$YSU_DIR"; then
+    pull_repo "$YSU_DIR"
+fi
+
 # Powerlevel10k
 P10K_DIR="$HOME/.zsh/powerlevel10k"
 if [[ ! -d "$P10K_DIR" ]]; then
