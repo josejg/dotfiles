@@ -97,12 +97,21 @@ add-zsh-hook precmd set-terminal-title-precmd
 # ---------------------------------------------------------------------------
 # Plugins (sourced from ~/.zsh/)
 # ---------------------------------------------------------------------------
-if [[ -f $HOME/.zsh/fast-syntax-highlighting/fast-syntax-highlighting.plugin.zsh ]]; then
-  source $HOME/.zsh/fast-syntax-highlighting/fast-syntax-highlighting.plugin.zsh
+# fzf-tab must be loaded after compinit but before autosuggestions/syntax-highlighting
+if [[ -f $HOME/.zsh/fzf-tab/fzf-tab.plugin.zsh ]]; then
+  source $HOME/.zsh/fzf-tab/fzf-tab.plugin.zsh
+  # Preview for files/directories
+  zstyle ':fzf-tab:complete:cd:*' fzf-preview 'ls --color=always $realpath'
+  zstyle ':fzf-tab:complete:ls:*' fzf-preview 'ls --color=always $realpath'
+  zstyle ':fzf-tab:*' fzf-min-height 20
 fi
 
 if [[ -f $HOME/.zsh/zsh-autosuggestions/zsh-autosuggestions.zsh ]]; then
   source $HOME/.zsh/zsh-autosuggestions/zsh-autosuggestions.zsh
+fi
+
+if [[ -f $HOME/.zsh/fast-syntax-highlighting/fast-syntax-highlighting.plugin.zsh ]]; then
+  source $HOME/.zsh/fast-syntax-highlighting/fast-syntax-highlighting.plugin.zsh
 fi
 
 if [[ -f $HOME/.zsh/zsh-history-substring-search/zsh-history-substring-search.zsh ]]; then
@@ -113,6 +122,11 @@ fi
 
 if [[ -f $HOME/.zsh/zsh-you-should-use/you-should-use.plugin.zsh ]]; then
   source $HOME/.zsh/zsh-you-should-use/you-should-use.plugin.zsh
+fi
+
+if [[ -f $HOME/.zsh/zsh-autopair/autopair.zsh ]]; then
+  source $HOME/.zsh/zsh-autopair/autopair.zsh
+  autopair-init
 fi
 
 # ---------------------------------------------------------------------------
@@ -139,6 +153,22 @@ export LESS_TERMCAP_so=$'\e[01;44;33m'  # begin reverse (status line)
 export LESS_TERMCAP_se=$'\e[0m'         # end reverse
 export LESS_TERMCAP_us=$'\e[1;32m'      # begin underline
 export LESS_TERMCAP_ue=$'\e[0m'         # end underline
+
+# ---------------------------------------------------------------------------
+# AI command suggestion (Ctrl+G) — requires `llm` CLI
+# ---------------------------------------------------------------------------
+if command -v llm > /dev/null; then
+  ai-suggest() {
+    local suggestion
+    suggestion=$(llm -s "Convert to a shell command for $(uname). Output ONLY the command, nothing else." "$BUFFER" 2>/dev/null)
+    if [[ -n $suggestion ]]; then
+      BUFFER=$suggestion
+      CURSOR=${#BUFFER}
+    fi
+  }
+  zle -N ai-suggest
+  bindkey '^G' ai-suggest
+fi
 
 # ---------------------------------------------------------------------------
 # FZF

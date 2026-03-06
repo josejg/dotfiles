@@ -139,6 +139,7 @@ export PATH="$HOME/.cargo/bin:$PATH"
 # Zoxide init
 if command -v zoxide > /dev/null; then
     eval "$(zoxide init zsh)"
+    cd() { builtin cd "$@" 2>/dev/null || z "$@" }
 fi
 
 # Ansible

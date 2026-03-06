@@ -12,7 +12,9 @@ RUN mkdir -p /root/.zsh && \
     git clone --depth=1 https://github.com/zsh-users/zsh-history-substring-search.git /root/.zsh/zsh-history-substring-search && \
     git clone --depth=1 https://github.com/romkatv/powerlevel10k.git /root/.zsh/powerlevel10k && \
     git clone --depth=1 https://github.com/zsh-users/zsh-completions.git /root/.zsh/zsh-completions && \
-    git clone --depth=1 https://github.com/MichaelAquilina/zsh-you-should-use.git /root/.zsh/zsh-you-should-use
+    git clone --depth=1 https://github.com/MichaelAquilina/zsh-you-should-use.git /root/.zsh/zsh-you-should-use && \
+    git clone --depth=1 https://github.com/Aloxaf/fzf-tab.git /root/.zsh/fzf-tab && \
+    git clone --depth=1 https://github.com/hlissner/zsh-autopair.git /root/.zsh/zsh-autopair
 
 # Install zoxide
 RUN curl -sSfL https://raw.githubusercontent.com/ajeetdsouza/zoxide/main/install.sh | sh

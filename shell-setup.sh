@@ -114,6 +114,18 @@ if ! safe_git_clone "https://github.com/MichaelAquilina/zsh-you-should-use.git" 
     pull_repo "$YSU_DIR"
 fi
 
+# fzf-tab
+FZFTAB_DIR="$HOME/.zsh/fzf-tab"
+if ! safe_git_clone "https://github.com/Aloxaf/fzf-tab.git" "$FZFTAB_DIR"; then
+    pull_repo "$FZFTAB_DIR"
+fi
+
+# zsh-autopair
+AUTOPAIR_DIR="$HOME/.zsh/zsh-autopair"
+if ! safe_git_clone "https://github.com/hlissner/zsh-autopair.git" "$AUTOPAIR_DIR"; then
+    pull_repo "$AUTOPAIR_DIR"
+fi
+
 # Powerlevel10k
 P10K_DIR="$HOME/.zsh/powerlevel10k"
 if [[ ! -d "$P10K_DIR" ]]; then
