@@ -1,20 +1,37 @@
-# Folder view configuration files
+# OS
 .DS_Store
 Desktop.ini
+Thumbs.db
 
 # Thumbnail cache files
 ._*
-Thumbs.db
 
 # Files that might appear on external disks
 .Spotlight-V100
 .Trashes
 
-# Compiled Python files
+# Python
 *.pyc
+__pycache__/
+*.egg-info/
+.ruff_cache/
+.mypy_cache/
+.pytest_cache/
 
 # Compiled C++ files
 *.out
+
+# Editors/IDEs
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Environment
+.env
+.env.local
+.envrc
 
 # Application specific files
 venv
