@@ -63,10 +63,23 @@ fi
 LOCAL_BIN="$HOME/.local/bin"
 mkdir -p "$LOCAL_BIN"
 
-# DIFF-SO-FANCY
-if [[ ! -f "$LOCAL_BIN/diff-so-fancy" ]]; then
-    curl -L -o "$LOCAL_BIN/diff-so-fancy" https://github.com/so-fancy/diff-so-fancy/releases/download/v1.4.4/diff-so-fancy
-    chmod +x "$LOCAL_BIN/diff-so-fancy"
+# DELTA (git pager)
+if ! command -v delta > /dev/null 2>&1; then
+    if [[ "$(uname -s)" == "Darwin" ]]; then
+        brew install git-delta
+    else
+        DELTA_VERSION="0.18.2"
+        DELTA_ARCH="$(uname -m)"
+        if [[ "$DELTA_ARCH" == "x86_64" ]]; then
+            DELTA_ARCH="x86_64"
+        elif [[ "$DELTA_ARCH" == "aarch64" ]]; then
+            DELTA_ARCH="aarch64"
+        fi
+        DELTA_TAR="delta-${DELTA_VERSION}-${DELTA_ARCH}-unknown-linux-gnu.tar.gz"
+        curl -sSL "https://github.com/dandavison/delta/releases/download/${DELTA_VERSION}/${DELTA_TAR}" | tar xz -C /tmp
+        mv "/tmp/delta-${DELTA_VERSION}-${DELTA_ARCH}-unknown-linux-gnu/delta" "$LOCAL_BIN/delta"
+        chmod +x "$LOCAL_BIN/delta"
+    fi
 fi
 
 #######################
