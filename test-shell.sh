@@ -14,9 +14,11 @@ for p in \
   "$HOME/.zsh/powerlevel10k/powerlevel10k.zsh-theme" \
   "$HOME/.zsh/zsh-completions/src" \
   "$HOME/.zsh/zsh-you-should-use/you-should-use.plugin.zsh" \
+  "$HOME/.zsh/fzf-tab/fzf-tab.plugin.zsh" \
+  "$HOME/.zsh/zsh-autopair/autopair.zsh" \
   "$HOME/.fzf.zsh"; do
   name=${p:t}
-  [[ -f $p ]] && echo "$name: OK" || echo "$name: MISSING"
+  [[ -f $p || -d $p ]] && echo "$name: OK" || echo "$name: MISSING"
 done
 
 echo ""
