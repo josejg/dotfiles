@@ -194,13 +194,9 @@ fi
 # ---------------------------------------------------------------------------
 # Environment & Aliases
 # ---------------------------------------------------------------------------
-if [[ -f ~/.common ]]; then
-  source ~/.common
-fi
-
-if [[ -f ~/.aliases ]]; then
-  source ~/.aliases
-fi
+for f in ~/.config/shell/*.sh; do
+  [[ -f "$f" ]] && source "$f"
+done
 
 # Tmuxinator completions
 if [[ -f ~/.bin/tmuxinator.zsh ]]; then

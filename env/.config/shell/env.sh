@@ -7,14 +7,12 @@
 # PATH
 
 function prepend_path() {
-  # Does the alias only if the aliased program is installed
     if [ -d $1 ]; then
         export PATH="$1:$PATH"
     fi
 }
 
 function append_path() {
-  # Does the alias only if the aliased program is installed
     if [ -d $1 ]; then
         export PATH="$PATH:$1"
     fi
@@ -30,23 +28,6 @@ prepend_path "$HOME/.neovim/bin"
 append_path "$HOME/.neovim/node/bin"
 append_path "$HOME/.emacs.d/bin"
 append_path "/opt/homebrew/bin"
-
-# export PATH="$HOME/bin:$PATH"
-
-
-# path_remove() {
-#     PATH=$(echo -n "$PATH" | awk -v RS=: -v ORS=: "\$0 != \"$1\"" | sed 's/:$//')
-# }
-
-# path_append() {
-#     path_remove "$1"
-#     PATH="${PATH:+"$PATH:"}$1"
-# }
-
-# path_prepend() {
-#     path_remove "$1"
-#     PATH="$1${PATH:+":$PATH"}"
-# }
 
 here() {
     local loc
@@ -70,71 +51,62 @@ there() {
 
 # PYTHON
 
-
 # set PYTHONPATH for local user packages
 export PYTHONPATH="$HOME/python-libs:$PYTHONPATH"
 
 
-if [ -d "$HOME/.pyenv" ]; then
-    # Python from pyenv
+###########################################################################################################################
 
-
-    export PYENV_ROOT="$HOME/.pyenv"
-    export PATH="$PYENV_ROOT/bin:$PATH"
-    eval "$(pyenv init --path)"
-    eval "$(pyenv init -)"
-
-
-    export PYENV_VIRTUALENV_DISABLE_PROMPT=1
-
-    prepend_path "$PYENV_ROOT/bin"     # PYENV binaries from
+# Lazy-load cargo/rust
+if [[ -f "$HOME/.cargo/env" ]]; then
+    cargo()  { unfunction cargo rustc rustup 2>/dev/null; unset -f cargo rustc rustup 2>/dev/null; source "$HOME/.cargo/env"; cargo "$@"; }
+    rustc()  { unfunction cargo rustc rustup 2>/dev/null; unset -f cargo rustc rustup 2>/dev/null; source "$HOME/.cargo/env"; rustc "$@"; }
+    rustup() { unfunction cargo rustc rustup 2>/dev/null; unset -f cargo rustc rustup 2>/dev/null; source "$HOME/.cargo/env"; rustup "$@"; }
 fi
 
-
-export PATH="$HOME/.poetry/bin:$PATH"
+# Rust bins still need to be on PATH for non-cargo tools
+prepend_path "$HOME/.cargo/bin"
 
 
 ###########################################################################################################################
 
-if [ -d "$HOME/.cargo/env" ]; then
-    source "$HOME/.cargo/env"
+# DEFAULT PROGRAMS
+
+# Browser (macOS only)
+if [[ "$(uname -s)" == "Darwin" ]]; then
+    export BROWSER='open'
 fi
 
+# Editors
+export EDITOR='vim'
+export VISUAL='vim'
 
-###########################################################################################################################
+# Pager
+export PAGER='less'
+export LESS='-F -g -i -M -R -S -w -X -z-4'
 
-# DEFAULT COLORS/PROGRAMS
+# lesspipe
+if command -v lesspipe > /dev/null 2>&1; then
+    export LESSOPEN="| /usr/bin/env lesspipe %s 2>&-"
+elif command -v lesspipe.sh > /dev/null 2>&1; then
+    export LESSOPEN="| /usr/bin/env lesspipe.sh %s 2>&-"
+fi
 
 # CLI colors
 export CLICOLOR=1
 export LSCOLORS=gxBxhxDxfxhxhxhxhxcxcx
 
-# Configure Editor
-if command -v nvim > /dev/null; then
-    export EDITOR='nvim'
-    export VISUAL='nvim'
-else
-    export EDITOR='vim'
-    export VISUAL='vim'
+# Language
+if [[ -z "$LANG" ]]; then
+    export LANGUAGE=en_US.UTF-8
+    export LC_ALL=en_US.UTF-8
+    export LANG=en_US.UTF-8
 fi
 
 
 ###########################################################################################################################
 
 # Misc Software
-
-
-# Less
-# -R for ANSI ESCAPE
-export LESS='-R' 
-
-# Add GOPATH
-export GOPATH=$HOME/go
-export PATH=$PATH:"$GOPATH/bin"
-
-
-# Rust Path init
-export PATH="$HOME/.cargo/bin:$PATH"
 
 # Zoxide init
 if command -v zoxide > /dev/null; then
@@ -145,51 +117,10 @@ fi
 # Ansible
 export ANSIBLE_NOCOWS=1
 
-# Broot
-BROOT=$HOME/.config/broot/launcher/bash/br
-if [[ -f $BROOT ]]; then
-    source $BROOT
-fi
-
 export ET_NO_TELEMETRY=1
 
 
-# Language
-export LANGUAGE=en_US.UTF-8
-export LC_ALL=en_US.UTF-8
-export LANG=en_US.UTF-8
-
 ###########################################################################################################################
-
-# OS specific
-# So bash is brew's and not OS's
-# export PATH="/usr/local/bin:$PATH"
-
-case "$(uname -s)" in
-
-   Darwin)
-     # Matlab
-     # export PATH="$PATH:/Applications/MATLAB_R2017b.app/bin"
-     # export TERM="xterm-256color"
-     # source $(brew --prefix asdf)/asdf.sh
-     ;;
-
-   Linux)
-     # source $HOME/.config/broot/launcher/bash/br
-
-     ;;
-
-   CYGWIN*|MINGW32*|MSYS*)
-
-     ;;
-
-   # Add here more strings to compare
-   # See correspondence table at the bottom of this answer
-
-   *)
-
-     ;;
-esac
 
 # Ring
 if [ -f ~/.ring ]; then
@@ -200,5 +131,3 @@ fi
 if [ -f ~/.local-env ]; then
     source ~/.local-env
 fi
-
-
