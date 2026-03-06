@@ -108,13 +108,6 @@ for config in "${COMMON_CONFIGS[@]}"; do
     safe_backup "$config" "$BACKUP_DIR"
 done
 
-# Handle zprezto files if they exist
-if [ -d ~/.zprezto/runcoms ]; then
-    while IFS= read -r -d '' zfile; do
-        safe_backup "$zfile" "$BACKUP_DIR"
-    done < <(find ~/.zprezto/runcoms -name "z*" -type f -print0)
-fi
-
 # Stow each program
 STOW_ERRORS=()
 for program in "${PROGRAMS[@]}"; do

@@ -211,16 +211,9 @@ if command -v fzf > /dev/null; then
     if [[ -f $1 ]]; then
         vim $1
     else
-        file="$(fasd -Rfl "$1" | fzf -1 -0 --no-sort +m)" && vim "${file}" || return 1
+        file="$(fd -t f | fzf -1 -0 --query="$1" +m)" && vim "${file}" || return 1
     fi
   }
-
-  if command -v subl > /dev/null; then
-    u() {
-      local file
-      file="$(fasd -Rfl "$1" | fzf -1 -0 --no-sort +m)" && subl "${file}" || return 1
-    }
-  fi
 
   #less on fuzzy find
   fl() {
@@ -263,16 +256,6 @@ function auto() {
 ###########################################################################################################################
 
 
-# # Comment below if not fzf and fasd
-# unalias z
-# # fasd & fzf change directory - jump using `fasd` if given argument, filter output of `fasd` using `fzf` else'
-# z() {
-#   [ $# -gt 0 ] && fasd_cd -d "$*" && return
-#   local dir
-#   dir="$(fasd -Rdl "$1" | fzf -1 -0 --no-sort +m)" && cd "${dir}" || return 1
-# }
-
-
 
 # OS dependent aliases
 case "$(uname -s)" in
@@ -313,7 +296,7 @@ case "$(uname -s)" in
        if [[ -f $1 ]]; then
            open $1
        else
-           file="$(fasd -Rl "$1" | fzf -1 -0 --no-sort +m)" && open "${file}" || return 1
+           file="$(fd -t f | fzf -1 -0 --query="$1" +m)" && open "${file}" || return 1
        fi
      }
      ;;

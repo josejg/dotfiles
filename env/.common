@@ -136,9 +136,9 @@ export PATH=$PATH:"$GOPATH/bin"
 # Rust Path init
 export PATH="$HOME/.cargo/bin:$PATH"
 
-# Fasd init
-if command -v fasd > /dev/null; then
-    eval "$(fasd --init auto)"
+# Zoxide init
+if command -v zoxide > /dev/null; then
+    eval "$(zoxide init zsh)"
 fi
 
 # Ansible

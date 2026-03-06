@@ -52,16 +52,6 @@ function backup_file() {
 mkdir -p "$HOME/bin"
 cd "$HOME"
 
-# FASD
-if [[ ! -f "$HOME/bin/fasd" ]]; then
-    TEMP_DIR=$(mktemp -d)
-    trap 'rm -rf "$TEMP_DIR"' EXIT
-    safe_git_clone "https://github.com/clvv/fasd.git" "$TEMP_DIR/fasd"
-    cd "$TEMP_DIR/fasd"
-    PREFIX=$HOME make install
-    cd - > /dev/null
-fi
-
 # FZF
 if ! safe_git_clone "https://github.com/junegunn/fzf.git" "$HOME/.fzf"; then
     pull_repo "$HOME/.fzf"
@@ -92,32 +82,32 @@ fi
 # ZSH
 #######################
 
-ZPREZTO_DIR="${ZDOTDIR:-$HOME}/.zprezto"
-if ! safe_git_clone "https://github.com/sorin-ionescu/prezto.git" "$ZPREZTO_DIR"; then
-    cd "$ZPREZTO_DIR"
-    git pull
-    git submodule update --init --recursive
-    cd - > /dev/null
-else
-    cd "$ZPREZTO_DIR"
-    git submodule update --init --recursive
-    cd -
-    # Only create symlinks on fresh install
-    backup_file ~/.zshrc
-    backup_file ~/.zprofile
-
-    setopt EXTENDED_GLOB
-    for rcfile in "${ZDOTDIR:-$HOME}"/.zprezto/runcoms/^README.md(.N); do
-        safe_link "$rcfile" "${ZDOTDIR:-$HOME}/.${rcfile:t}"
-    done
-fi
-
 mkdir -p "$HOME/.zsh"
 
 # Fast syntax highlighting
 FSH_DIR="$HOME/.zsh/fast-syntax-highlighting"
 if ! safe_git_clone "https://github.com/zdharma-continuum/fast-syntax-highlighting.git" "$FSH_DIR"; then
     pull_repo "$FSH_DIR"
+fi
+
+# Zsh autosuggestions
+ZAS_DIR="$HOME/.zsh/zsh-autosuggestions"
+if ! safe_git_clone "https://github.com/zsh-users/zsh-autosuggestions.git" "$ZAS_DIR"; then
+    pull_repo "$ZAS_DIR"
+fi
+
+# Zsh history substring search
+ZHSS_DIR="$HOME/.zsh/zsh-history-substring-search"
+if ! safe_git_clone "https://github.com/zsh-users/zsh-history-substring-search.git" "$ZHSS_DIR"; then
+    pull_repo "$ZHSS_DIR"
+fi
+
+# Powerlevel10k
+P10K_DIR="$HOME/.zsh/powerlevel10k"
+if [[ ! -d "$P10K_DIR" ]]; then
+    git clone --depth=1 "https://github.com/romkatv/powerlevel10k.git" "$P10K_DIR"
+else
+    pull_repo "$P10K_DIR"
 fi
 
 #######################
