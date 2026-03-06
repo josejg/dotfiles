@@ -53,7 +53,7 @@ def latex_init(name, files, includes_dir, cwd):
 if __name__ == '__main__':
     args = sys.argv
     if args[1] in ['-h', '--help']:
-        print('latex-init copies tex templates in ~/bin/latex_includes to pwd')
+        print('latex-init copies tex templates from latex_includes/ to pwd')
         print('Usage is as follows:')
         print('    latex-init [-l | --lua] <name> [<includes>...]')
         sys.exit(0)

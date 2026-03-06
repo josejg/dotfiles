@@ -1,4 +1,10 @@
-#!/usr/bin/env python
+#!/usr/bin/env -S uv run --script
+# /// script
+# requires-python = ">=3.12"
+# dependencies = ["typer", "ruamel.yaml"]
+# ///
+
+"""Sort YAML file keys to match the ordering of a reference YAML file."""
 
 import sys
 from pathlib import Path
@@ -18,14 +24,10 @@ def sort_yaml_preserve_comments(data, reference):
             if key not in order:
                 order[key] = (1, j)
 
-        # Create a sorted list of keys
         sorted_keys = sorted(data, key=lambda x: order[x])
-
-        # Reorder the keys in place according to the sorted list
         for key in sorted_keys:
             data.move_to_end(key)
 
-        # Recursively sort any nested mappings or lists
         for key in data:
             sort_yaml_preserve_comments(data[key], reference.get(key, {}))
 
@@ -45,11 +47,7 @@ def sort_yaml_using_reference(
     content = yaml.load(file.read_text())
     reference = yaml.load(reference.read_text())
 
-    # Sort the YAML content (inplace)
     sort_yaml_preserve_comments(content, reference)
-
-    # Write the sorted YAML back to a file
-    # if output_file is None print to sys.stdout
 
     if output_file is None:
         yaml.dump(content, sys.stdout)

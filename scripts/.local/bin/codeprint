@@ -1,0 +1,53 @@
+#!/usr/bin/env bash
+
+# Check if the repository path is given
+if [ -z "$1" ]; then
+    echo "Usage: $0 path_to_repository"
+    exit 1
+fi
+
+REPO_PATH="$1"
+OUTPUT_DIR="$1-pdf"
+
+# Ensure enscript and ps2pdf are installed
+if ! command -v enscript &> /dev/null; then
+    echo "enscript could not be found, please install it."
+    exit 1
+fi
+
+if ! command -v ps2pdf &> /dev/null; then
+    echo "ps2pdf could not be found, please install it."
+    exit 1
+fi
+
+# Create the output directory
+# mkdir -p "$OUTPUT_DIR"
+
+# cd "$REPO_PATH" || exit
+
+# Find all Python files and convert them
+find "$REPO_PATH" -type f -name "*.py" | while read -r file; do
+    # Skip files that contain 'test' in the filename
+    if [[ "$file" == *test* ]]; then
+        echo "Skipping $file"
+        continue
+    fi
+    # Determine the relative path and corresponding output path
+    rel_path="${file#$REPO_PATH/}"
+    output_file="$OUTPUT_DIR/${rel_path%.py}.pdf"
+    output_dir=$(dirname "$output_file")
+
+    # Create the necessary directory structure in the output directory
+    mkdir -p "$output_dir"
+
+    # Convert the file to PDF
+    enscript -2rG --line-numbers -p - --word-wrap --highlight=python --color=1 "$file" > /tmp/readable.ps
+    ps2pdf /tmp/readable.ps "$output_file"
+
+    # Clean up temporary file
+    rm /tmp/readable.ps
+
+    echo "Converted $file to $output_file"
+done
+
+echo "All Python files have been converted."

@@ -1,4 +1,11 @@
-#!/usr/bin/env python
+#!/usr/bin/env -S uv run --script
+# /// script
+# requires-python = ">=3.12"
+# dependencies = ["ffmpeg-python", "python-magic", "numpy"]
+# ///
+
+"""Analyze video files in directories — reports bitrate, resolution, and stream statistics."""
+
 import pathlib
 import sys
 from collections import Counter
@@ -22,21 +29,20 @@ def video_details(path):
             bitrates.append(int(probe['format']['bit_rate']))
             sizes.append(int(probe['format']['size']))
 
-            video_stream = next((stream for stream in probe['streams'] if stream['codec_type'] == 'video'), None)
-            audio_streams = [stream for stream in probe['streams'] if stream['codec_type'] == 'audio']
-            sub_streams = [stream for stream in probe['streams'] if stream['codec_type'] == 'subtitle']
+            video_stream = next((s for s in probe['streams'] if s['codec_type'] == 'video'), None)
+            audio_streams = [s for s in probe['streams'] if s['codec_type'] == 'audio']
+            sub_streams = [s for s in probe['streams'] if s['codec_type'] == 'subtitle']
 
             width = int(video_stream['width'])
             height = int(video_stream['height'])
-
             resolutions.append((width, height))
 
-            if len(audio_streams) > 0:
+            if audio_streams:
                 audio.append(len(audio_streams))
-            if len(sub_streams) > 0:
+            if sub_streams:
                 subtitle.append(len(sub_streams))
 
-    if len(bitrates) == 0:
+    if not bitrates:
         return None
 
     mean, std = np.mean(bitrates), np.std(bitrates)
@@ -44,26 +50,20 @@ def video_details(path):
     bitrates = np.array(bitrates)[non_outliers]
     sizes = np.array(sizes)[non_outliers]
 
-    # details = f"{path}"
-    details = ""
-    details += f"\n\tFiles {len(bitrates)}"
-
+    details = f"\n\tFiles {len(bitrates)}"
     details += f"\n\tBitrate {np.mean(bitrates)/1024:.0f}kbps ± {np.std(bitrates)/np.mean(bitrates)*100:.2f}%"
     details += f"\n\tSizes {np.mean(sizes)/1024**2:.0f}MB ± {np.std(sizes)/np.mean(sizes)*100:.2f}%"
     details += f"\n\tResolution {Counter(resolutions).most_common(1)[0]}"
-    if len(audio) > 0:
+    if audio:
         details += f"\n\tAudio {Counter(audio).most_common(1)[0]}"
-    if len(subtitle) > 0:
+    if subtitle:
         details += f"\n\tSubs {Counter(subtitle).most_common(1)[0]}"
     return details
 
 
 if __name__ == '__main__':
-
     assert len(sys.argv) > 1
-
     paths = [pathlib.Path(p) for p in sys.argv[1:]]
-
     for path in paths:
         for subdir in path.glob('**'):
             print(subdir)

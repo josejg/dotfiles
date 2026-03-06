@@ -1,0 +1,96 @@
+#!/usr/bin/env -S uv run --script
+# /// script
+# requires-python = ">=3.12"
+# dependencies = ["playsound"]
+# ///
+
+"""Pomodoro timer with progress bar, sound alerts, and Hammerspoon notifications.
+
+Sound files are configured via environment variables:
+  POMO_END_SOUND   — played when a work session ends
+  POMO_BREAK_SOUND — played when a break ends (defaults to POMO_END_SOUND)
+"""
+
+import argparse
+import os
+import subprocess
+import sys
+import threading
+import time
+import urllib.parse
+
+from playsound import playsound
+
+POMO_END_SOUND = os.environ.get("POMO_END_SOUND", "")
+POMO_BREAK_SOUND = os.environ.get("POMO_BREAK_SOUND", POMO_END_SOUND)
+
+
+def progress_bar(iteration, total, prefix="", suffix="", length=42, fill="█"):
+    percent = f"{100 * iteration / total:.0f}"
+    if len(percent) < 2:
+        percent = " " + percent
+    filled = int(length * iteration // total)
+    bar = fill * filled + "-" * (length - filled)
+    print(f"\r{prefix} |{bar}| {percent}% {suffix}", end="\r")
+    if iteration == total:
+        print()
+
+
+def countdown(minutes):
+    seconds = minutes * 60
+    for i in range(seconds):
+        m, s = i // 60, i % 60
+        progress_bar(i, seconds, prefix="\r", suffix=f"{m:02d}:{s:02d}")
+        time.sleep(1)
+    print("\rDone!")
+
+
+def play_sound(path):
+    if path and os.path.isfile(path):
+        t = threading.Thread(target=playsound, args=(path,))
+        t.start()
+
+
+def alert(msg):
+    print(msg)
+    if sys.platform == "darwin":
+        encoded = urllib.parse.quote(msg)
+        subprocess.run(["open", "-g", f"hammerspoon://alert?msg={encoded}"])
+
+
+def hs_pomobreak(minutes):
+    if sys.platform == "darwin":
+        subprocess.run(["open", "-g", f"hammerspoon://pomodoroBreak?min={minutes}"])
+
+
+def main():
+    parser = argparse.ArgumentParser(description="Pomodoro command line tool")
+    parser.add_argument("-d", "--duration", type=int, default=25, help="Minutes for pomodoro")
+    parser.add_argument("-b", "--break", dest="break_", type=int, default=5, help="Minutes for break")
+    parser.add_argument("-l", "--loop", action="store_true", default=False, help="Loop continuously")
+    parser.add_argument("task", nargs="?", default=None, help="Name of task")
+    args = parser.parse_args()
+
+    while True:
+        alert(f"Doing {args.task} for {args.duration}")
+        try:
+            countdown(args.duration)
+        except KeyboardInterrupt:
+            sys.exit(0)
+
+        play_sound(POMO_END_SOUND)
+
+        if args.break_ > 0:
+            try:
+                hs_pomobreak(args.break_)
+                countdown(args.break_)
+            except KeyboardInterrupt:
+                sys.exit(0)
+            play_sound(POMO_BREAK_SOUND)
+
+        if not args.loop:
+            break
+
+
+if __name__ == "__main__":
+    main()

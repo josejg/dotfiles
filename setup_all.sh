@@ -81,7 +81,7 @@ function safe_stow() {
 check_dependencies
 
 # Define programs to stow
-PROGRAMS=(bash env git python tmux vim zsh)
+PROGRAMS=(bash env git python scripts tmux vim zsh)
 # PROGRAMS=(alias aspell bash env git latex python scripts stow tmux vim zsh mac terminal)
 
 # Create backup directory with timestamp

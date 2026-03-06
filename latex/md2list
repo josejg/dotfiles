@@ -1,0 +1,50 @@
+#!/usr/bin/env python3
+
+"""Convert Markdown files into PDF checklists via LaTeX."""
+
+import argparse
+import pathlib
+import shutil
+import subprocess
+
+# Template lives next to this script in the dotfiles repo
+SCRIPT_DIR = pathlib.Path(__file__).resolve().parent
+DEFAULT_TEMPLATE = SCRIPT_DIR / "latex_includes" / "checklist_template.tex"
+INCLUDE_FILE = 'rawlist.tex'
+
+
+def md_to_pdf(src_file, dst_file, aux_folder, template_file):
+    ascii_file = aux_folder / src_file.name
+    tex_file = aux_folder / INCLUDE_FILE
+    print(f"Processing {src_file}")
+    with open(ascii_file, 'w') as fp:
+        subprocess.call(['iconv', '-f', 'UTF-8', '-t', 'US-ASCII', '-c', str(src_file.absolute())], stdout=fp)
+    subprocess.call(['pandoc', '-f', 'markdown', '-t', 'latex', str(ascii_file.absolute()), '-o', str(tex_file.absolute())])
+    subprocess.call(['pdflatex', '-output-directory', str(aux_folder.absolute()), str(template_file.absolute())],
+                    stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+    shutil.move(str(template_file.with_suffix('.pdf')), str(dst_file.absolute()))
+
+
+if __name__ == '__main__':
+    parser = argparse.ArgumentParser(description='Convert Markdown files into PDF checklists')
+    parser.add_argument('-o', dest='dst', default=None, help='Output folder')
+    parser.add_argument('-t', dest='template_file', default=str(DEFAULT_TEMPLATE), help='Template LaTeX file')
+    parser.add_argument('--aux', dest='aux_folder', default='/tmp/md2list_aux', help='Auxiliary folder')
+    parser.add_argument(dest='src', nargs='+', help='Input md file[s]')
+    args = parser.parse_args()
+
+    aux_folder = pathlib.Path(args.aux_folder)
+    aux_folder.mkdir(parents=True, exist_ok=True)
+
+    template_file = pathlib.Path(args.template_file)
+    shutil.copy(template_file, aux_folder)
+    template_file = aux_folder / template_file.name
+
+    dst = pathlib.Path(args.dst) if args.dst else None
+    if dst is not None:
+        dst.mkdir(parents=True, exist_ok=True)
+
+    for src_file in args.src:
+        src_file = pathlib.Path(src_file)
+        dst_file = (dst / src_file.with_suffix('.pdf').name) if dst else src_file.with_suffix('.pdf')
+        md_to_pdf(src_file, dst_file, aux_folder, template_file)

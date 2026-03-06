@@ -1,0 +1,62 @@
+#!/usr/bin/env -S uv run --script
+# /// script
+# requires-python = ">=3.12"
+# dependencies = ["pypdf"]
+# ///
+
+"""Merge PDFs with optional blank page padding for printing."""
+
+import argparse
+import pathlib
+import sys
+
+from pypdf import PdfReader, PdfWriter
+
+
+def main():
+    parser = argparse.ArgumentParser(description="Merge PDFs with blank page padding")
+    parser.add_argument("files", nargs="*", help="PDF files to merge")
+    parser.add_argument("-f", dest="folder", help="Join all PDFs in folder")
+    parser.add_argument("-o", dest="output", default="merged.pdf", help="Output file")
+    parser.add_argument("-p", dest="pages", type=int, default=1, help="Pad to multiple of N pages")
+    parser.add_argument("-d", dest="double", type=int, help="Pad for double-sided (2*N pages)")
+    parser.add_argument("-v", "--verbose", action="store_true")
+    args = parser.parse_args()
+
+    alignment = int(args.double) * 2 if args.double else args.pages
+
+    if args.folder:
+        folder = pathlib.Path(args.folder)
+        if not folder.exists():
+            print(f"ERROR: Folder {folder.absolute()} does not exist!")
+            sys.exit(1)
+        files = sorted(folder.glob("*.pdf"))
+    else:
+        files = args.files
+
+    if not files:
+        parser.print_help()
+        sys.exit(1)
+
+    writer = PdfWriter()
+    for filename in files:
+        reader = PdfReader(filename)
+        n = len(reader.pages)
+        white_pages = (alignment - n % alignment) % alignment
+        if args.verbose:
+            print(f"Processing {filename}: {n} pages + {white_pages} blank")
+        for page in reader.pages:
+            writer.add_page(page)
+        for _ in range(white_pages):
+            writer.add_blank_page()
+
+    if args.verbose:
+        print(f"Saving to {args.output} ...")
+    with open(args.output, "wb") as f:
+        writer.write(f)
+    if args.verbose:
+        print("Done!")
+
+
+if __name__ == "__main__":
+    main()

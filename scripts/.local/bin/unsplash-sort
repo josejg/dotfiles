@@ -1,0 +1,30 @@
+#!/usr/bin/env -S uv run --script
+# /// script
+# requires-python = ">=3.12"
+# dependencies = ["Pillow"]
+# ///
+
+"""Sort images by aspect ratio into horizontal/vertical directories.
+
+Reads target directories from environment variables:
+  SORTED_WALLPAPER_HORIZONTAL
+  SORTED_WALLPAPER_VERTICAL
+"""
+
+import os
+import pathlib
+import shutil
+import sys
+
+from PIL import Image
+
+horz_dir = pathlib.Path(os.environ["SORTED_WALLPAPER_HORIZONTAL"])
+vert_dir = pathlib.Path(os.environ["SORTED_WALLPAPER_VERTICAL"])
+
+if __name__ == "__main__":
+    for f in pathlib.Path(sys.argv[1]).glob(sys.argv[2]):
+        with Image.open(f.as_posix()) as im:
+            width, height = im.size
+        dest = vert_dir if height > width else horz_dir
+        shutil.move(f.as_posix(), (dest / f.name).as_posix())
+        print(f"Moved {f.name}")

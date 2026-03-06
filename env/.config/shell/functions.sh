@@ -131,6 +131,35 @@ fi
 
 ###########################################################################################################################
 
+# Crypto
+enc() { openssl enc -aes-256-cbc -salt -in "$1" -out "$1.enc"; }
+dec() { openssl enc -aes-256-cbc -d -in "$1" -out "${1%.*}"; }
+
+# Quick dated draft in Sublime Text
+draft() { subl -n "$(date -u +"$HOME/Downloads/%Y%m%d%H%M%S.txt")"; }
+
+# Generate multi-size favicon.ico from an image (requires ImageMagick)
+mkfavicon() {
+    convert "$1" -resize 256x256 -transparent white favicon-256.png
+    convert favicon-256.png -resize 16x16 favicon-16.png
+    convert favicon-256.png -resize 32x32 favicon-32.png
+    convert favicon-256.png -resize 64x64 favicon-64.png
+    convert favicon-256.png -resize 128x128 favicon-128.png
+    convert favicon-16.png favicon-32.png favicon-64.png favicon-128.png favicon-256.png -colors 256 favicon.ico
+}
+
+# Convert MP4 to MP3 via ffmpeg
+mp4-to-mp3() {
+    for f in "${@:-*.mp4}"; do
+        local out="${f%.mp4}.mp3"
+        [[ -f "$out" ]] && continue
+        echo "Converting $f"
+        ffmpeg -i "$f" -q:a 0 -map a "$out"
+    done
+}
+
+###########################################################################################################################
+
 # OS dependent functions
 case "$(uname -s)" in
 
@@ -142,6 +171,19 @@ case "$(uname -s)" in
        else
            file="$(fd -t f | fzf -1 -0 --query="$1" +m)" && open "${file}" || return 1
        fi
+     }
+
+     # OCR via TRex.app → clipboard
+     ocr() { pbcopy < <(/Applications/TRex.app/Contents/MacOS/cli/trex); }
+
+     # Stop, upgrade, restart yabai + reinstall scripting addition
+     update-yabai() {
+         brew services stop yabai
+         brew upgrade yabai
+         brew services start yabai
+         sudo yabai --uninstall-sa
+         sudo yabai --install-sa
+         killall Dock
      }
      ;;
 

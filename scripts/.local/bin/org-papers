@@ -1,0 +1,11 @@
+#!/usr/bin/env bash
+
+
+FOLDER=$HOME/Downloads
+DEST=$HOME/Documents/read-later/_PAPERS
+
+for file in $(/opt/homebrew/bin/fd -d 1  '\b\d{4}\.\d{5}(v\d+)?\.pdf\b' "$FOLDER"); do
+    mv "$file" "$DEST"
+done
+
+open "$HOME/Documents/read-later/_PAPERS"

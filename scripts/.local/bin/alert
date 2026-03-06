@@ -1,13 +1,12 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
+
+"""Send a macOS notification via Hammerspoon. Defaults to 'Done!' if no message given."""
 
 import subprocess
 import sys
 import urllib.parse
 
 if __name__ == '__main__':
-    msg = " ".join(sys.argv[1:])
-    if msg == "":
-        msg = "Done!"
+    msg = " ".join(sys.argv[1:]) or "Done!"
     msg = urllib.parse.quote(msg)
     subprocess.run(['open', '-g', f'hammerspoon://alert?msg={msg}'])
-
