@@ -12,6 +12,9 @@ RUN mkdir -p /root/.zsh && \
     git clone --depth=1 https://github.com/zsh-users/zsh-history-substring-search.git /root/.zsh/zsh-history-substring-search && \
     git clone --depth=1 https://github.com/romkatv/powerlevel10k.git /root/.zsh/powerlevel10k
 
+# Install zoxide
+RUN curl -sSfL https://raw.githubusercontent.com/ajeetdsouza/zoxide/main/install.sh | sh
+
 # Install fzf (remove generated rc files so stow can link ours)
 RUN git clone --depth=1 https://github.com/junegunn/fzf.git /root/.fzf && \
     yes | /root/.fzf/install && \
