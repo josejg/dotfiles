@@ -1,18 +1,28 @@
-ARG BASE_IMAGE=ubuntu:20.04
-FROM ${BASE_IMAGE}
+FROM ubuntu:24.04
 
-COPY ubuntu-home.sh /
-RUN DEBIAN_FRONTEND=noninteractive apt update -qqq && \
-    DEBIAN_FRONTEND=noninteractive apt install -qq --no-install-recommends -y zsh stow wget git make curl tmux tzdata \
-    software-properties-common python3 python3-venv python3-pip && \
-    chmod +x /ubuntu-home.sh && CLEANUP=1 /ubuntu-home.sh
+RUN DEBIAN_FRONTEND=noninteractive apt-get update -qq && \
+    DEBIAN_FRONTEND=noninteractive apt-get install -qq --no-install-recommends -y \
+    zsh git stow curl ca-certificates && \
+    apt-get clean && rm -rf /var/lib/apt/lists/*
 
-# Set Zsh as the default shell
-RUN chsh -s /usr/bin/zsh root
+# Install zsh plugins
+RUN mkdir -p /root/.zsh && \
+    git clone --depth=1 https://github.com/zdharma-continuum/fast-syntax-highlighting.git /root/.zsh/fast-syntax-highlighting && \
+    git clone --depth=1 https://github.com/zsh-users/zsh-autosuggestions.git /root/.zsh/zsh-autosuggestions && \
+    git clone --depth=1 https://github.com/zsh-users/zsh-history-substring-search.git /root/.zsh/zsh-history-substring-search && \
+    git clone --depth=1 https://github.com/romkatv/powerlevel10k.git /root/.zsh/powerlevel10k
 
-# Set working directory
-WORKDIR /root
+# Install fzf (remove generated rc files so stow can link ours)
+RUN git clone --depth=1 https://github.com/junegunn/fzf.git /root/.fzf && \
+    yes | /root/.fzf/install && \
+    rm -f /root/.zshrc /root/.bashrc
 
-# Set the default command to Zsh
+COPY test-shell.sh /usr/local/bin/test-shell
+WORKDIR /root/.dotfiles
+
+# Entrypoint: remove stale rc files, stow from volume, then run CMD
+RUN printf '#!/bin/zsh\nrm -f ~/.zshrc ~/.zshenv ~/.zprofile ~/.zlogin ~/.common ~/.aliases ~/.p10k.zsh 2>/dev/null\ncd /root/.dotfiles\nstow --target=$HOME zsh env\nexec "$@"\n' > /entrypoint.sh && \
+    chmod +x /entrypoint.sh
+
+ENTRYPOINT ["/entrypoint.sh"]
 CMD ["zsh"]
-

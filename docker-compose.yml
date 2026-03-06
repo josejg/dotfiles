@@ -1,0 +1,7 @@
+services:
+  shell:
+    build: .
+    volumes:
+      - .:/root/.dotfiles
+    stdin_open: true
+    tty: true
