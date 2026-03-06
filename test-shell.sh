@@ -3,7 +3,8 @@ set -e
 export TERM=${TERM:-xterm-256color}
 
 echo "=== Stow check ==="
-ls -la ~/.zshrc ~/.zprofile ~/.zshenv ~/.zlogin ~/.common ~/.aliases ~/.p10k.zsh
+ls -la ~/.zshrc ~/.zprofile ~/.zshenv ~/.zlogin ~/.p10k.zsh
+ls -la ~/.config/shell/env.sh ~/.config/shell/aliases.sh ~/.config/shell/functions.sh
 
 echo ""
 echo "=== Plugins ==="

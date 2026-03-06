@@ -28,7 +28,7 @@ COPY test-shell.sh /usr/local/bin/test-shell
 WORKDIR /root/.dotfiles
 
 # Entrypoint: remove stale rc files, stow from volume, then run CMD
-RUN printf '#!/bin/zsh\nrm -f ~/.zshrc ~/.zshenv ~/.zprofile ~/.zlogin ~/.common ~/.aliases ~/.p10k.zsh 2>/dev/null\ncd /root/.dotfiles\nstow --target=$HOME zsh env\nexec "$@"\n' > /entrypoint.sh && \
+RUN printf '#!/bin/zsh\nrm -f ~/.zshrc ~/.zshenv ~/.zprofile ~/.zlogin ~/.common ~/.aliases ~/.p10k.zsh 2>/dev/null\nrm -rf ~/.config/shell 2>/dev/null\ncd /root/.dotfiles\nstow --target=$HOME zsh env\nexec "$@"\n' > /entrypoint.sh && \
     chmod +x /entrypoint.sh
 
 ENTRYPOINT ["/entrypoint.sh"]
