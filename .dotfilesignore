@@ -1,0 +1,13 @@
+# Runtime artifacts -- never symlink these
+.DS_Store
+.stow-local-ignore
+__pycache__
+*.pyc
+automatic_backups/*
+db/*
+log/*
+pid/*
+security/*
+.ruff_cache/*
+*.sqlite
+spell/*.spl
