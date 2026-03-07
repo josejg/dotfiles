@@ -284,7 +284,7 @@ BINARY_TOOLS: dict[str, BinaryTool] = {
             "darwin_x86_64": None,
             "darwin_arm64": None,
         },
-        strip_components=2,
+        strip_components=1,
         binary_in_archive="bin/gh",
     ),
     "jq": BinaryTool(
@@ -300,6 +300,121 @@ BINARY_TOOLS: dict[str, BinaryTool] = {
             "darwin_arm64": "jq-macos-arm64",
         },
     ),
+    "fzf": BinaryTool(
+        repo="junegunn/fzf",
+        binary_name="fzf",
+        brew_name="fzf",
+        assets={
+            "linux_x86_64": "fzf-{v}-linux_amd64.tar.gz",
+            "linux_arm64": "fzf-{v}-linux_arm64.tar.gz",
+            "darwin_x86_64": "fzf-{v}-darwin_amd64.tar.gz",
+            "darwin_arm64": "fzf-{v}-darwin_arm64.tar.gz",
+        },
+        binary_in_archive="fzf",
+    ),
+    "delta": BinaryTool(
+        repo="dandavison/delta",
+        binary_name="delta",
+        brew_name="git-delta",
+        tag_prefix="",
+        assets={
+            "linux_x86_64": "delta-{v}-x86_64-unknown-linux-gnu.tar.gz",
+            "linux_arm64": "delta-{v}-aarch64-unknown-linux-gnu.tar.gz",
+            "darwin_x86_64": None,
+            "darwin_arm64": None,
+        },
+        strip_components=1,
+        binary_in_archive="delta",
+    ),
+    "fd": BinaryTool(
+        repo="sharkdp/fd",
+        binary_name="fd",
+        brew_name="fd",
+        version_pin="10.2.0",
+        assets={
+            "linux_x86_64": "fd-v{v}-x86_64-unknown-linux-gnu.tar.gz",
+            "linux_arm64": "fd-v{v}-aarch64-unknown-linux-gnu.tar.gz",
+            "darwin_x86_64": None,
+            "darwin_arm64": None,
+        },
+        strip_components=1,
+        binary_in_archive="fd",
+    ),
+    "rg": BinaryTool(
+        repo="BurntSushi/ripgrep",
+        binary_name="rg",
+        brew_name="ripgrep",
+        tag_prefix="",
+        assets={
+            "linux_x86_64": "ripgrep-{v}-x86_64-unknown-linux-musl.tar.gz",
+            "linux_arm64": "ripgrep-{v}-aarch64-unknown-linux-gnu.tar.gz",
+            "darwin_x86_64": None,
+            "darwin_arm64": None,
+        },
+        strip_components=1,
+        binary_in_archive="rg",
+    ),
+    "difft": BinaryTool(
+        repo="Wilfred/difftastic",
+        binary_name="difft",
+        brew_name="difftastic",
+        tag_prefix="",
+        assets={
+            "linux_x86_64": "difft-x86_64-unknown-linux-gnu.tar.gz",
+            "linux_arm64": "difft-aarch64-unknown-linux-gnu.tar.gz",
+            "darwin_x86_64": None,
+            "darwin_arm64": None,
+        },
+        binary_in_archive="difft",
+    ),
+    "lazygit": BinaryTool(
+        repo="jesseduffield/lazygit",
+        binary_name="lazygit",
+        brew_name="lazygit",
+        assets={
+            "linux_x86_64": "lazygit_{v}_Linux_x86_64.tar.gz",
+            "linux_arm64": "lazygit_{v}_Linux_arm64.tar.gz",
+            "darwin_x86_64": None,
+            "darwin_arm64": None,
+        },
+        binary_in_archive="lazygit",
+    ),
+    "zoxide": BinaryTool(
+        repo="ajeetdsouza/zoxide",
+        binary_name="zoxide",
+        brew_name="zoxide",
+        assets={
+            "linux_x86_64": "zoxide-{v}-x86_64-unknown-linux-musl.tar.gz",
+            "linux_arm64": "zoxide-{v}-aarch64-unknown-linux-musl.tar.gz",
+            "darwin_x86_64": None,
+            "darwin_arm64": None,
+        },
+        binary_in_archive="zoxide",
+    ),
+    "eza": BinaryTool(
+        repo="eza-community/eza",
+        binary_name="eza",
+        brew_name="eza",
+        assets={
+            "linux_x86_64": "eza_x86_64-unknown-linux-gnu.tar.gz",
+            "linux_arm64": "eza_aarch64-unknown-linux-gnu.tar.gz",
+            "darwin_x86_64": None,
+            "darwin_arm64": None,
+        },
+        binary_in_archive="./eza",
+    ),
+    "nvim": BinaryTool(
+        repo="neovim/neovim",
+        binary_name="nvim",
+        brew_name="neovim",
+        assets={
+            "linux_x86_64": "nvim-linux-x86_64.tar.gz",
+            "linux_arm64": "nvim-linux-arm64.tar.gz",
+            "darwin_x86_64": None,
+            "darwin_arm64": None,
+        },
+        install_dir="~/.local/nvim",
+    ),
 }
 
 # Bootstrap order: gh and jq first for authenticated API access
@@ -310,11 +425,15 @@ BOOTSTRAP_TOOLS = ["gh", "jq"]
 # ---------------------------------------------------------------------------
 
 
+def _expand(path: str) -> Path:
+    return Path(path.replace("~", str(HOME)))
+
+
 def should_install(tool: BinaryTool) -> bool:
     """Determine whether a tool needs installation."""
     local_path = LOCAL_BIN / tool.binary_name
     if tool.install_dir:
-        local_path = HOME / tool.install_dir.lstrip("~/.") / "bin" / tool.binary_name
+        local_path = _expand(tool.install_dir) / "bin" / tool.binary_name
 
     if local_path.exists() and not ARGS.upgrade:
         verbose(f"{tool.binary_name}: already in {local_path}, skipping")
@@ -391,7 +510,7 @@ def install_binary_tool(name: str, tool: BinaryTool) -> bool:
 
         # Special case: nvim needs full directory extraction
         if tool.install_dir:
-            install_path = Path(tool.install_dir.replace("~", str(HOME)))
+            install_path = _expand(tool.install_dir)
             if not extract_dir_from_tar(dl_path, install_path):
                 return False
             # Create symlink
