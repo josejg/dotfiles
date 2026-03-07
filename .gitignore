@@ -1,25 +1,38 @@
 .DS_Store
 *rsa*
 
-imgur-album-downloader/
+# Python runtime
+python/.mypy_cache/
 python/.matplotlib/fontList.json
-.tmp-aliases
 python/.matplotlib/fontlist-v300.json
+python/.ipython/profile_default/history.sqlite
+python/.ipython/profile_default/startup/03-keys.py
+python/.ipython/profile_default/startup/.ruff_cache/
+python/.ipython/profile_default/db/
+python/.ipython/profile_default/log/
+python/.ipython/profile_default/pid/
+python/.ipython/profile_default/security/
+
+# Vim
+vim/.vim/plugged/
+vim/.vim/undodir/
+vim/.vim/spell/
+
+# macOS
+mac/.config/karabiner/automatic_backups/
+secrets.lua
+
+# Terminal
+terminal/.config/alacritty/themes/
+terminal/.config/alacritty/current-theme.toml
+
+# Legacy (safe to remove once confirmed unused)
+imgur-album-downloader/
+.tmp-aliases
 local
 .stignore
 .stversions
 scripts/bin/diff-so-fancy
 scripts/bin/syncthing
-python/.ipython/profile_default/history.sqlite
-vim/.vim/plugged
-vim/.vim/undodir
-vim/.vim/spell
 dotfile_bk_*
 todo.md
-terminal/.config/alacritty/themes
-terminal/.config/alacritty/current-theme.toml
-secrets.lua
-python/.ipython/profile_default/startup/03-keys.py
-python/.ipython/profile_default/db
-mac/.config/karabiner/automatic_backups
-python/.mypy_cache/
