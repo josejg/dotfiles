@@ -544,6 +544,261 @@ def install_binary_tool(name: str, tool: BinaryTool) -> bool:
 
 
 # ---------------------------------------------------------------------------
+# Git dependencies
+# ---------------------------------------------------------------------------
+
+
+@dataclass
+class GitDep:
+    repo: str  # "owner/name" on GitHub
+    dest: str  # target directory (~ expanded)
+    shallow: bool = False
+
+
+GIT_DEPS: dict[str, GitDep] = {
+    "fast-syntax-highlighting": GitDep(
+        repo="zdharma-continuum/fast-syntax-highlighting",
+        dest="~/.zsh/fast-syntax-highlighting",
+    ),
+    "zsh-autosuggestions": GitDep(
+        repo="zsh-users/zsh-autosuggestions",
+        dest="~/.zsh/zsh-autosuggestions",
+    ),
+    "zsh-history-substring-search": GitDep(
+        repo="zsh-users/zsh-history-substring-search",
+        dest="~/.zsh/zsh-history-substring-search",
+    ),
+    "zsh-completions": GitDep(
+        repo="zsh-users/zsh-completions",
+        dest="~/.zsh/zsh-completions",
+    ),
+    "zsh-you-should-use": GitDep(
+        repo="MichaelAquilina/zsh-you-should-use",
+        dest="~/.zsh/zsh-you-should-use",
+    ),
+    "fzf-tab": GitDep(
+        repo="Aloxaf/fzf-tab",
+        dest="~/.zsh/fzf-tab",
+    ),
+    "zsh-autopair": GitDep(
+        repo="hlissner/zsh-autopair",
+        dest="~/.zsh/zsh-autopair",
+    ),
+    "powerlevel10k": GitDep(
+        repo="romkatv/powerlevel10k",
+        dest="~/.zsh/powerlevel10k",
+        shallow=True,
+    ),
+    "alacritty-themes": GitDep(
+        repo="JJGO/alacritty-theme",
+        dest="~/.config/alacritty/themes",
+    ),
+}
+
+
+def install_git_dep(name: str, dep: GitDep) -> bool:
+    dest = _expand(dep.dest)
+    url = f"https://github.com/{dep.repo}.git"
+
+    if dest.exists():
+        if not ARGS.upgrade:
+            ok(f"{name}: already cloned")
+            return True
+        info(f"{name}: updating")
+        if ARGS.dry_run:
+            return True
+        if dep.shallow:
+            subprocess.run(
+                ["git", "-C", str(dest), "fetch", "--depth=1"],
+                check=True,
+                capture_output=True,
+            )
+            subprocess.run(
+                ["git", "-C", str(dest), "reset", "--hard", "origin/HEAD"],
+                check=True,
+                capture_output=True,
+            )
+        else:
+            subprocess.run(
+                ["git", "-C", str(dest), "pull", "--ff-only"],
+                check=True,
+                capture_output=True,
+            )
+        ok(f"{name}: updated")
+        return True
+
+    info(f"{name}: cloning to {dest}")
+    if ARGS.dry_run:
+        return True
+    dest.parent.mkdir(parents=True, exist_ok=True)
+    cmd = ["git", "clone"]
+    if dep.shallow:
+        cmd += ["--depth=1"]
+    cmd += [url, str(dest)]
+    try:
+        subprocess.run(cmd, check=True, capture_output=True)
+        ok(f"{name}: cloned")
+        return True
+    except subprocess.CalledProcessError as exc:
+        err(f"{name}: clone failed: {exc.stderr.decode()}")
+        return False
+
+
+# ---------------------------------------------------------------------------
+# Neovim environment setup
+# ---------------------------------------------------------------------------
+
+NVIM_DIR = HOME / ".neovim"
+
+
+def setup_nvim_env() -> bool:
+    """Set up Python venv and Node.js for Neovim providers."""
+    success = True
+
+    # Python venv
+    py3_dir = NVIM_DIR / "py3"
+    if py3_dir.exists() and not ARGS.upgrade:
+        # Check if venv is healthy (python binary exists and works)
+        py3_bin = py3_dir / "bin" / "python3"
+        try:
+            subprocess.check_output(
+                [str(py3_bin), "-c", "import sys; print(sys.version)"],
+                timeout=5,
+                stderr=subprocess.STDOUT,
+            )
+            ok("nvim-py3: venv healthy")
+        except (subprocess.CalledProcessError, FileNotFoundError, OSError):
+            warn("nvim-py3: venv broken, recreating")
+            if not ARGS.dry_run:
+                shutil.rmtree(py3_dir)
+                # Fall through to create it
+    if not py3_dir.exists() or ARGS.upgrade:
+        action = "upgrading" if py3_dir.exists() else "creating"
+        info(f"nvim-py3: {action} venv")
+        if not ARGS.dry_run:
+            if not py3_dir.exists():
+                subprocess.run([sys.executable, "-m", "venv", str(py3_dir)], check=True)
+            pip = str(py3_dir / "bin" / "pip")
+            subprocess.run(
+                [pip, "install", "-q", "--upgrade", "pip", "pynvim"], check=True
+            )
+            ok("nvim-py3: ready")
+
+    # Node.js
+    node_dir = NVIM_DIR / "node"
+    node_bin = node_dir / "bin" / "node"
+    if node_bin.exists() and not ARGS.upgrade:
+        ok("nvim-node: installed")
+    elif not node_bin.exists():
+        # Check if node is available system-wide
+        if shutil.which("node"):
+            info("nvim-node: using system node")
+            if not ARGS.dry_run:
+                npm = shutil.which("npm")
+                if npm:
+                    subprocess.run(
+                        [npm, "install", "-g", "neovim"],
+                        check=True,
+                        capture_output=True,
+                    )
+                    ok("nvim-node: neovim package installed globally")
+        else:
+            info("nvim-node: downloading Node.js")
+            if not ARGS.dry_run:
+                if not _install_node(node_dir):
+                    success = False
+    elif ARGS.upgrade:
+        info("nvim-node: upgrading neovim package")
+        if not ARGS.dry_run:
+            npm = (
+                str(node_dir / "bin" / "npm")
+                if node_bin.exists()
+                else shutil.which("npm")
+            )
+            if npm:
+                subprocess.run(
+                    [npm, "update", "-g", "neovim"],
+                    check=True,
+                    capture_output=True,
+                )
+                ok("nvim-node: updated")
+
+    return success
+
+
+def _install_node(node_dir: Path) -> bool:
+    """Download and install Node.js LTS to node_dir."""
+    node_arch = "arm64" if ARCH == "arm64" else "x64"
+    node_os = "darwin" if SYSTEM == "darwin" else "linux"
+
+    # Get latest LTS version from nodejs.org
+    try:
+        with urllib.request.urlopen(
+            "https://nodejs.org/dist/index.json", timeout=10
+        ) as resp:
+            versions = json.loads(resp.read())
+        lts_version = None
+        for v in versions:
+            if v.get("lts"):
+                lts_version = v["version"]
+                break
+        if not lts_version:
+            err("Could not find Node.js LTS version")
+            return False
+    except Exception as exc:
+        err(f"Failed to fetch Node.js versions: {exc}")
+        return False
+
+    tarball = f"node-{lts_version}-{node_os}-{node_arch}.tar.gz"
+    url = f"https://nodejs.org/dist/{lts_version}/{tarball}"
+
+    with tempfile.TemporaryDirectory() as td:
+        dl_path = Path(td) / tarball
+        if not download_file(url, dl_path):
+            return False
+        if not extract_dir_from_tar(dl_path, node_dir):
+            return False
+
+    npm = str(node_dir / "bin" / "npm")
+    try:
+        subprocess.run(
+            [npm, "install", "-g", "neovim"], check=True, capture_output=True
+        )
+    except subprocess.CalledProcessError as exc:
+        err(f"npm install neovim failed: {exc}")
+        return False
+
+    ok("nvim-node: installed")
+    return True
+
+
+# ---------------------------------------------------------------------------
+# Claude Code
+# ---------------------------------------------------------------------------
+
+
+def install_claude_code() -> bool:
+    if shutil.which("claude") and not ARGS.upgrade:
+        ok("claude-code: installed")
+        return True
+    info("claude-code: installing")
+    if ARGS.dry_run:
+        return True
+    if SYSTEM == "darwin" and has_brew():
+        return brew_install("claude-code", upgrade=ARGS.upgrade)
+    try:
+        subprocess.run(
+            ["bash", "-c", "curl -fsSL https://claude.ai/install.sh | bash"],
+            check=True,
+        )
+        ok("claude-code: installed")
+        return True
+    except subprocess.CalledProcessError as exc:
+        err(f"claude-code install failed: {exc}")
+        return False
+
+
+# ---------------------------------------------------------------------------
 # CLI
 # ---------------------------------------------------------------------------
 
@@ -572,18 +827,23 @@ def main() -> None:
     parser = build_parser()
     ARGS = parser.parse_args()
 
+    requested = set(ARGS.tools) if ARGS.tools else None
+    all_names = set(BINARY_TOOLS) | set(GIT_DEPS) | {"nvim-env", "claude-code"}
+    if requested:
+        unknown = requested - all_names
+        if unknown:
+            err(f"Unknown tools: {', '.join(sorted(unknown))}")
+            sys.exit(1)
+
     info(f"Platform: {PLATFORM_KEY}")
     if ARGS.dry_run:
         info("Dry run — no changes will be made")
-
-    requested = set(ARGS.tools) if ARGS.tools else None
 
     # Phase 1: Bootstrap tools (gh, jq)
     for name in BOOTSTRAP_TOOLS:
         if requested and name not in requested:
             continue
-        tool = BINARY_TOOLS[name]
-        install_binary_tool(name, tool)
+        install_binary_tool(name, BINARY_TOOLS[name])
 
     # Phase 2: All other binary tools
     for name, tool in BINARY_TOOLS.items():
@@ -592,6 +852,20 @@ def main() -> None:
         if requested and name not in requested:
             continue
         install_binary_tool(name, tool)
+
+    # Phase 3: Git dependencies
+    for name, dep in GIT_DEPS.items():
+        if requested and name not in requested:
+            continue
+        install_git_dep(name, dep)
+
+    # Phase 4: Neovim environment
+    if not requested or "nvim-env" in requested:
+        setup_nvim_env()
+
+    # Phase 5: Claude Code
+    if not requested or "claude-code" in requested:
+        install_claude_code()
 
     info("Done!")
 
