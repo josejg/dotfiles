@@ -23,8 +23,12 @@ Each top-level directory is a package whose files are symlinked into `$HOME` by 
 ### Setup
 
 ```bash
-# 1. Bootstrap shell tooling (fzf, delta, zsh plugins, tmux TPM, etc.)
-./shell-setup.sh
+# 1. Install tools & dependencies (binaries, zsh plugins, neovim env)
+./setup.py                     # install everything missing
+./setup.py --upgrade           # update all to latest
+./setup.py delta fzf gh        # specific tools only
+./setup.py -n                  # dry run
+./setup.py --prefer-brew       # on Linux: use linuxbrew instead of pre-built binaries
 
 # 2. Symlink dotfiles into $HOME
 ./install.py                # all platform-appropriate packages
