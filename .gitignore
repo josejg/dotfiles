@@ -22,3 +22,4 @@ secrets.lua
 python/.ipython/profile_default/startup/03-keys.py
 python/.ipython/profile_default/db
 mac/.config/karabiner/automatic_backups
+python/.mypy_cache/
