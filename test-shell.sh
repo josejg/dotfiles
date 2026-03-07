@@ -2,9 +2,23 @@
 set -e
 export TERM=${TERM:-xterm-256color}
 
-echo "=== Stow check ==="
-ls -la ~/.zshrc ~/.zprofile ~/.zshenv ~/.zlogin ~/.p10k.zsh
-ls -la ~/.config/shell/env.sh ~/.config/shell/aliases.sh ~/.config/shell/functions.sh
+echo "=== Symlink check ==="
+ERRORS=0
+for f in ~/.zshrc ~/.zshenv ~/.zprofile ~/.zlogin ~/.p10k.zsh \
+         ~/.config/shell/env.sh ~/.config/shell/aliases.sh ~/.config/shell/functions.sh \
+         ~/.gitconfig ~/.bashrc ~/.bash_profile ~/.tmux.conf; do
+  if [[ -L "$f" ]]; then
+    target=$(readlink "$f")
+    echo "  OK: $f -> $target"
+  elif [[ -e "$f" ]]; then
+    echo "  WARN: $f exists but is not a symlink"
+    ((ERRORS++))
+  else
+    echo "  MISS: $f does not exist"
+    ((ERRORS++))
+  fi
+done
+[[ $ERRORS -eq 0 ]] && echo "All symlinks OK" || echo "$ERRORS issues found"
 
 echo ""
 echo "=== Plugins ==="

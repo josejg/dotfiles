@@ -2,7 +2,7 @@ FROM ubuntu:24.04
 
 RUN DEBIAN_FRONTEND=noninteractive apt-get update -qq && \
     DEBIAN_FRONTEND=noninteractive apt-get install -qq --no-install-recommends -y \
-    zsh git stow curl ca-certificates && \
+    zsh git python3 curl ca-certificates && \
     apt-get clean && rm -rf /var/lib/apt/lists/*
 
 # Install zsh plugins
@@ -19,7 +19,7 @@ RUN mkdir -p /root/.zsh && \
 # Install zoxide
 RUN curl -sSfL https://raw.githubusercontent.com/ajeetdsouza/zoxide/main/install.sh | sh
 
-# Install fzf (remove generated rc files so stow can link ours)
+# Install fzf (remove generated rc files so install.py can link ours)
 RUN git clone --depth=1 https://github.com/junegunn/fzf.git /root/.fzf && \
     yes | /root/.fzf/install && \
     rm -f /root/.zshrc /root/.bashrc
@@ -27,8 +27,8 @@ RUN git clone --depth=1 https://github.com/junegunn/fzf.git /root/.fzf && \
 COPY test-shell.sh /usr/local/bin/test-shell
 WORKDIR /root/.dotfiles
 
-# Entrypoint: remove stale rc files, stow from volume, then run CMD
-RUN printf '#!/bin/zsh\nrm -f ~/.zshrc ~/.zshenv ~/.zprofile ~/.zlogin ~/.common ~/.aliases ~/.p10k.zsh 2>/dev/null\nrm -rf ~/.config/shell 2>/dev/null\ncd /root/.dotfiles\nstow --target=$HOME zsh env\nexec "$@"\n' > /entrypoint.sh && \
+# Entrypoint: remove stale rc files, install from volume, then run CMD
+RUN printf '#!/bin/zsh\nrm -f ~/.zshrc ~/.zshenv ~/.zprofile ~/.zlogin ~/.common ~/.aliases ~/.p10k.zsh 2>/dev/null\nrm -rf ~/.config/shell 2>/dev/null\ncd /root/.dotfiles\npython3 install.py --force zsh env\nexec "$@"\n' > /entrypoint.sh && \
     chmod +x /entrypoint.sh
 
 ENTRYPOINT ["/entrypoint.sh"]

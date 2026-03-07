@@ -1,5 +1,6 @@
 .DS_Store
 *rsa*
+.backups/
 
 # Python runtime
 python/.mypy_cache/

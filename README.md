@@ -2,9 +2,9 @@
 
 Personal configuration files for a **ZSH + TMUX + Neovim** stack on macOS and Linux.
 
-Managed with [GNU Stow](https://www.gnu.org/software/stow/) -- each top-level directory is a stow package that symlinks into `$HOME`.
+Each top-level directory is a package whose files are symlinked into `$HOME` by `install.py`.
 
-### Stow packages
+### Packages
 
 | Package | Contents |
 |---------|----------|
@@ -27,7 +27,9 @@ Managed with [GNU Stow](https://www.gnu.org/software/stow/) -- each top-level di
 ./shell-setup.sh
 
 # 2. Symlink dotfiles into $HOME
-./setup_all.sh
+./install.py                # all platform-appropriate packages
+./install.py -n             # dry run
+./install.py zsh env git    # specific packages only
 ```
 
 ### Key tools
