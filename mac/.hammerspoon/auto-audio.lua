@@ -34,13 +34,4 @@ function chooseAudio()
     builtin:setDefaultOutputDevice()
 end
 
-function audioCallback(msg)
-    if msg == "dev#" then
-        print("Choosing Audio")
-        chooseAudio()
-    end
-end
-
--- hs.audiodevice.watcher.setCallback(audioCallback)
--- hs.audiodevice.watcher.start()
 hs.hotkey.bind(hyper, "'", chooseAudio)

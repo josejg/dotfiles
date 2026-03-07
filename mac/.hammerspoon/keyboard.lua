@@ -1,23 +1,11 @@
--- Bunch of convenient Keyboard Shorcut actions
-
--- function openTerminal()
---     -- kitty
---     k = hs.application.find("kitty")
---     if k == nil then
---         hs.application.launchOrFocus("kitty")
---     else
---         k:selectMenuItem("New OS Window")
---     end
--- end
+-- Keyboard shortcuts
 
 function openTerminal()
-    -- os.execute('open -nF /Applications/Alacritty.app')
     hs.application.launchOrFocus("alacritty")
     hs.eventtap.keyStroke({"cmd"}, "n")
 end
 
 function openBrowser()
-    -- kitty
     k = hs.application.find("Firefox")
     if k == nil then
         hs.application.launchOrFocus("Firefox")
@@ -26,76 +14,47 @@ function openBrowser()
 end
 
 function openBrowser2()
-    -- kitty
-    k = hs.application.find("Thorium")
+    k = hs.application.find("Brave Browser")
     if k == nil then
-        hs.application.launchOrFocus("Thorium")
+        hs.application.launchOrFocus("Brave Browser")
     end
     k:selectMenuItem("New Window")
 end
 
-function openSublime()
-    os.execute('date -u +"~/Downloads/%Y%m%d%H%M%S.txt" | xargs /usr/local/bin/subl -n')
-end
-function openVimr()
-    d = os.date("%Y%m%d%H%M%S")
-    file = os.getenv("HOME") .. "/Downloads/" .. d .. ".md"
-    os.execute("cd $HOME/Downloads; /usr/local/bin/vimr " .. file)
-end
-
--- ⌘ + ⏎ Opens New Terminal
+-- Cmd+Return opens new terminal
 hs.hotkey.bind({"cmd"}, "return", openTerminal)
 
--- ⌘ + ⇧ + ⏎ Opens New Browser Window
+-- Cmd+Shift+Return opens new Firefox window
 hs.hotkey.bind({"cmd","shift"}, "return", openBrowser)
 
--- -- ⌘ + ⇧ + ⏎ Opens New Browser Window
--- hs.hotkey.bind({"ctrl", "cmd","shift"}, "return", openBrowser2)
-
--- Ctrl + ⇧ + ⏎
+-- Ctrl+Cmd+Return opens new Brave window
 hs.hotkey.bind({"ctrl", "cmd"}, "return", openBrowser2)
-
--- Ctrl + ⇧ + ⏎
-hs.hotkey.bind({"ctrl", "cmd", 'alt'}, "return", function() os.execute("/opt/homebrew/bin/firefox https://chat.openai.com") end)
 
 -- Hyper+V types contents of clipboard
 hs.hotkey.bind(hyper, "V", function() hs.eventtap.keyStrokes(hs.pasteboard.getContents()) end)
 
--- Hyper+` Brings up Hammerspoon console
+-- Hyper+` brings up Hammerspoon console
 hs.hotkey.bind(hyper, "`", function() hs.openConsole() end)
 
--- Launch or Focus Activity Monitor
+-- Hyper+M launches Activity Monitor
 hs.hotkey.bind(hyper, "M", function() hs.application.launchOrFocus("Activity Monitor") end)
 
--- Launch or Focus Activity Monitor
+-- Hyper+S launches Spotify
 hs.hotkey.bind(hyper, "S", function() hs.application.launchOrFocus("Spotify") end)
 
--- Provides a keyboard based window switcher (instead of app switcher)
+-- Cmd+Alt+Tab provides keyboard-based window switcher
 hs.hotkey.bind({"cmd", "alt"}, "tab", function() hs.hints.windowHints() end)
 
--- Hyper+F makes toggles app zoom
+-- Hyper+F toggles app zoom
 hs.hotkey.bind(hyper, "F", function() hs.window.focusedWindow():toggleZoom() end)
 
--- Ctrl+Cmd + Escape -- Sleeps the Computer
+-- Ctrl+Shift+Escape sleeps the computer
 hs.hotkey.bind({"ctrl", "shift"}, "escape", function() hs.caffeinate.systemSleep() end)
 
--- Ctrl+Shift + Escape -- Sleeps the displays
--- hs.hotkey.bind({"ctrl", "shift"}, "escape", function() os.execute("pmset displaysleepnow") end)
-
--- Ctrl+Cmd+Alt + P -- Toggle Caps Lock
+-- Ctrl+Cmd+Alt+P toggles Caps Lock
 hs.hotkey.bind({"ctrl", "cmd", "alt"}, "P", function() hs.hid.capslock.toggle() end)
 
--- Capture OCR to clipboard
-hs.hotkey.bind({"ctrl", "cmd", "alt"}, "O", function() os.execute("~/bin/ocr") end)
-
-
--- Load the required modules
-local hotkey = require "hs.hotkey"
-local caffeinate = require "hs.caffeinate"
-
--- Define a hotkey to activate the screensaver
--- You can change cmd+alt+s to any combination you prefer
-hotkey.bind({"cmd", "ctrl"}, "escape", function()
-  -- Launch the screensaver
-  caffeinate.startScreensaver()
+-- Cmd+Ctrl+Escape activates screensaver
+hs.hotkey.bind({"cmd", "ctrl"}, "escape", function()
+  hs.caffeinate.startScreensaver()
 end)

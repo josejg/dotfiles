@@ -60,7 +60,6 @@ function _fuzzyPickWindow(item)
 		end
 		return
 	end
-	saveTime(6)
 	id = item["windowID"]
 	window = hs.window.get(id)
 	window:focus()
