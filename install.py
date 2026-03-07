@@ -98,7 +98,7 @@ def is_ignored(rel_path: Path, patterns: list[str]) -> bool:
 def discover_files(pkg_dir: Path, patterns: list[str]) -> list[Path]:
     files: list[Path] = []
     for p in sorted(pkg_dir.rglob("*")):
-        if not p.is_file():
+        if not p.is_file() or p.is_symlink():
             continue
         rel = p.relative_to(pkg_dir)
         if is_ignored(rel, patterns):
@@ -148,7 +148,7 @@ def link_file(
     # Guard: src must resolve to within the dotfiles repo
     try:
         resolved = src.resolve()
-        if not str(resolved).startswith(str(DOTFILES_DIR)):
+        if not resolved.is_relative_to(DOTFILES_DIR):
             fail(f"{src} resolves outside repo")
             errors.append(str(src))
             return
@@ -190,23 +190,17 @@ def link_file(
         except OSError:
             pass
 
-        # Case 4: symlink pointing elsewhere
-        if dst.is_symlink():
-            if dry_run:
-                ok(f"(would relink) {display}")
-                return
-            dst.unlink()
-            dst.symlink_to(rel_target)
-            ok(display)
-            return
-
-        # Case 5: regular file conflict
+        # Case 4: symlink pointing elsewhere OR regular file conflict
         if dry_run:
-            ok(f"(would overwrite) {display}")
+            label = "would relink" if dst.is_symlink() else "would overwrite"
+            ok(f"({label}) {display}")
             return
 
         if force or not sys.stdin.isatty():
-            backup_file(dst, backup_root, target_dir)
+            if dst.is_symlink():
+                dst.unlink()
+            else:
+                backup_file(dst, backup_root, target_dir)
             dst.symlink_to(rel_target)
             ok(display)
         else:
@@ -268,6 +262,43 @@ def install_package(
     return len(files)
 
 
+# --- Unlink -------------------------------------------------------------------
+
+
+def unlink_package(
+    name: str,
+    target_dir: Path,
+    patterns: list[str],
+    *,
+    dry_run: bool,
+    verbose: bool,
+) -> int:
+    pkg_dir = DOTFILES_DIR / name
+    if not pkg_dir.is_dir():
+        return 0
+
+    files = discover_files(pkg_dir, patterns)
+    removed = 0
+    for src in files:
+        rel = src.relative_to(pkg_dir)
+        dst = target_dir / rel
+        if not dst.is_symlink():
+            continue
+        try:
+            if not src.samefile(dst):
+                continue
+        except OSError:
+            continue
+        if dry_run:
+            ok(f"(would unlink) {dst}")
+        else:
+            dst.unlink()
+            ok(f"unlinked {dst}")
+        removed += 1
+
+    return removed
+
+
 # --- Main ---------------------------------------------------------------------
 
 
@@ -305,6 +336,11 @@ def main() -> None:
         action="store_true",
         help="Verbose output",
     )
+    parser.add_argument(
+        "--unlink",
+        action="store_true",
+        help="Remove symlinks pointing into the dotfiles repo",
+    )
     args = parser.parse_args()
 
     current_platform = platform.system().lower()
@@ -312,10 +348,7 @@ def main() -> None:
     errors: list[str] = []
     total_files = 0
 
-    timestamp = datetime.now(timezone.utc).strftime("%Y%m%d%H%M%S")
-    backup_root = DOTFILES_DIR / ".backups" / timestamp
-
-    # Determine which packages to install
+    # Determine which packages to operate on
     if args.packages:
         selected = args.packages
     else:
@@ -327,6 +360,26 @@ def main() -> None:
 
     if args.dry_run:
         print("Dry run -- no changes will be made\n")
+
+    # Unlink mode: remove symlinks and exit
+    if args.unlink:
+        removed = 0
+        for name in selected:
+            if name not in PACKAGES:
+                fail(f"unknown package: {name}")
+                continue
+            removed += unlink_package(
+                name,
+                args.target,
+                patterns,
+                dry_run=args.dry_run,
+                verbose=args.verbose,
+            )
+        print(f"\n  {removed} symlink(s) {'would be ' if args.dry_run else ''}removed")
+        return
+
+    timestamp = datetime.now(timezone.utc).strftime("%Y%m%d%H%M%S")
+    backup_root = DOTFILES_DIR / ".backups" / timestamp
 
     for name in selected:
         if name not in PACKAGES:
