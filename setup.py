@@ -882,11 +882,14 @@ def main() -> None:
     if ARGS.dry_run:
         info("Dry run — no changes will be made")
 
+    failures: list[str] = []
+
     # Phase 1: Bootstrap tools (gh, jq)
     for name in BOOTSTRAP_TOOLS:
         if requested and name not in requested:
             continue
-        install_binary_tool(name, BINARY_TOOLS[name])
+        if not install_binary_tool(name, BINARY_TOOLS[name]):
+            failures.append(name)
 
     # Phase 2: All other binary tools
     for name, tool in BINARY_TOOLS.items():
@@ -894,22 +897,29 @@ def main() -> None:
             continue
         if requested and name not in requested:
             continue
-        install_binary_tool(name, tool)
+        if not install_binary_tool(name, tool):
+            failures.append(name)
 
     # Phase 3: Git dependencies
     for name, dep in GIT_DEPS.items():
         if requested and name not in requested:
             continue
-        install_git_dep(name, dep)
+        if not install_git_dep(name, dep):
+            failures.append(name)
 
     # Phase 4: Neovim environment
     if not requested or "nvim-env" in requested:
-        setup_nvim_env()
+        if not setup_nvim_env():
+            failures.append("nvim-env")
 
     # Phase 5: Claude Code
     if not requested or "claude-code" in requested:
-        install_claude_code()
+        if not install_claude_code():
+            failures.append("claude-code")
 
+    if failures:
+        err(f"Failed: {', '.join(failures)}")
+        sys.exit(1)
     info("Done!")
 
 
