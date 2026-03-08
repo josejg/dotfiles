@@ -208,7 +208,10 @@ def link_file(
             if choice == "s":
                 skip(f"{dst} (user skipped)")
             elif choice == "o":
-                dst.unlink()
+                if dst.is_dir() and not dst.is_symlink():
+                    shutil.rmtree(dst)
+                else:
+                    dst.unlink()
                 dst.symlink_to(rel_target)
                 ok(display)
             elif choice == "b":

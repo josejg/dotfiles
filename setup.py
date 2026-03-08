@@ -271,8 +271,17 @@ def brew_install(package: str, upgrade: bool = False) -> bool:
         return True
     except subprocess.CalledProcessError:
         if action == "upgrade":
-            # Already up to date
-            return True
+            # brew upgrade exits non-zero when already up-to-date;
+            # check if the package is actually installed and current
+            try:
+                subprocess.check_call(
+                    ["brew", "list", package],
+                    stdout=subprocess.DEVNULL,
+                    stderr=subprocess.DEVNULL,
+                )
+                return True  # package exists, was just already current
+            except subprocess.CalledProcessError:
+                return False  # genuinely broken
         return False
 
 
