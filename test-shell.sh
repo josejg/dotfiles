@@ -1,6 +1,7 @@
 #!/bin/zsh
 set -e
 export TERM=${TERM:-xterm-256color}
+export PATH="$HOME/.local/bin:$PATH"
 
 echo "=== Symlink check ==="
 ERRORS=0

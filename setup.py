@@ -135,7 +135,28 @@ def _has_gh() -> bool:
 
 
 def github_latest_tag(repo: str) -> str | None:
-    """Get latest release tag from GitHub. Uses gh CLI if available, else urllib."""
+    """Get latest release tag from GitHub.
+
+    Primary: follow the /releases/latest 302 redirect (no API quota).
+    Fallback 1: gh CLI (authenticated, 5000 req/hr).
+    Fallback 2: REST API via urllib (60 req/hr unauthenticated).
+    """
+    # Primary: redirect-based (no rate limit)
+    try:
+        req = urllib.request.Request(
+            f"https://github.com/{repo}/releases/latest",
+            method="HEAD",
+        )
+        with urllib.request.urlopen(req, timeout=10) as resp:
+            # Final URL after redirect: .../releases/tag/<tag>
+            tag = resp.url.rsplit("/", 1)[-1]
+            if tag and tag != "latest":
+                verbose(f"  {repo}: resolved tag {tag} via redirect")
+                return tag
+    except Exception:
+        pass
+
+    # Fallback 1: gh CLI
     if _has_gh():
         try:
             return subprocess.check_output(
@@ -146,6 +167,7 @@ def github_latest_tag(repo: str) -> str | None:
         except (subprocess.CalledProcessError, subprocess.TimeoutExpired):
             pass
 
+    # Fallback 2: REST API
     url = f"https://api.github.com/repos/{repo}/releases/latest"
     try:
         req = urllib.request.Request(
