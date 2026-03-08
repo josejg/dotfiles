@@ -11,7 +11,6 @@ import re
 import shutil
 import subprocess
 import sys
-import tarfile
 import tempfile
 import urllib.request
 from dataclasses import dataclass
@@ -202,54 +201,30 @@ def download_file(url: str, dest: Path) -> bool:
         return False
 
 
-def _safe_tar_extract(tf: tarfile.TarFile, dest: str) -> None:
-    """Extract tarfile with path traversal protection."""
-    if hasattr(tarfile, "data_filter"):
-        tf.extractall(dest, filter="data")
-    else:
-        # Python < 3.12: validate members manually
-        dest_path = Path(dest).resolve()
-        for member in tf.getmembers():
-            member_path = (dest_path / member.name).resolve()
-            if not member_path.is_relative_to(dest_path):
-                raise tarfile.TarError(f"Path traversal detected: {member.name}")
-            if member.issym() or member.islnk():
-                link = Path(member.linkname)
-                if link.is_absolute():
-                    raise tarfile.TarError(
-                        f"Absolute symlink in archive: {member.name} -> {member.linkname}"
-                    )
-                resolved = (dest_path / member.name).parent / link
-                if not resolved.resolve().is_relative_to(dest_path):
-                    raise tarfile.TarError(
-                        f"Symlink escape detected: {member.name} -> {member.linkname}"
-                    )
-        tf.extractall(dest)
-
-
 def extract_binary_from_tar(
     archive: Path,
     binary_in_archive: str,
     dest: Path,
     strip_components: int = 0,
 ) -> bool:
-    """Extract a single binary from a tar.gz archive."""
+    """Extract a single binary from a tar.gz archive using system tar."""
     try:
-        with tarfile.open(archive) as tf:
-            members = tf.getmembers()
-            # Find the target binary
-            for member in members:
-                parts = Path(member.name).parts
+        with tempfile.TemporaryDirectory() as td:
+            subprocess.run(
+                ["tar", "xzf", str(archive), "-C", td],
+                check=True,
+                capture_output=True,
+            )
+            # Find the binary after extraction
+            for candidate in Path(td).rglob(Path(binary_in_archive).name):
+                parts = candidate.relative_to(td).parts
                 if strip_components > 0 and len(parts) > strip_components:
                     name_after_strip = str(Path(*parts[strip_components:]))
                 else:
-                    name_after_strip = member.name
+                    name_after_strip = str(candidate.relative_to(td))
                 if name_after_strip == binary_in_archive:
-                    with tempfile.TemporaryDirectory() as td:
-                        _safe_tar_extract(tf, td)
-                        extracted = Path(td) / member.name
-                        shutil.move(str(extracted), str(dest))
-                        dest.chmod(0o755)
+                    shutil.move(str(candidate), str(dest))
+                    dest.chmod(0o755)
                     return True
             err(f"Binary '{binary_in_archive}' not found in archive")
             return False
@@ -262,14 +237,15 @@ def extract_dir_from_tar(archive: Path, dest: Path) -> bool:
     """Extract an entire tar.gz to dest (for nvim-style full-directory installs)."""
     try:
         with tempfile.TemporaryDirectory() as td:
-            with tarfile.open(archive) as tf:
-                _safe_tar_extract(tf, td)
-            # Find the single top-level directory
+            subprocess.run(
+                ["tar", "xzf", str(archive), "-C", td],
+                check=True,
+                capture_output=True,
+            )
             extracted = list(Path(td).iterdir())
             if len(extracted) != 1 or not extracted[0].is_dir():
                 err("Expected single directory in archive")
                 return False
-            # Remove old dest if it exists, then move
             if dest.exists():
                 shutil.rmtree(dest)
             shutil.move(str(extracted[0]), str(dest))
@@ -457,7 +433,7 @@ BINARY_TOOLS: dict[str, BinaryTool] = {
             "darwin_x86_64": None,
             "darwin_arm64": None,
         },
-        binary_in_archive="./eza",
+        binary_in_archive="eza",
     ),
     "nvim": BinaryTool(
         repo="neovim/neovim",
