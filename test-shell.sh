@@ -12,10 +12,10 @@ for f in ~/.zshrc ~/.zshenv ~/.zprofile ~/.zlogin ~/.p10k.zsh \
     echo "  OK: $f -> $target"
   elif [[ -e "$f" ]]; then
     echo "  WARN: $f exists but is not a symlink"
-    ((ERRORS++))
+    ERRORS=$((ERRORS + 1))
   else
     echo "  MISS: $f does not exist"
-    ((ERRORS++))
+    ERRORS=$((ERRORS + 1))
   fi
 done
 [[ $ERRORS -eq 0 ]] && echo "All symlinks OK" || echo "$ERRORS issues found"
@@ -30,10 +30,19 @@ for p in \
   "$HOME/.zsh/zsh-completions/src" \
   "$HOME/.zsh/zsh-you-should-use/you-should-use.plugin.zsh" \
   "$HOME/.zsh/fzf-tab/fzf-tab.plugin.zsh" \
-  "$HOME/.zsh/zsh-autopair/autopair.zsh" \
-  "$HOME/.fzf.zsh"; do
+  "$HOME/.zsh/zsh-autopair/autopair.zsh"; do
   name=${p:t}
-  [[ -f $p || -d $p ]] && echo "$name: OK" || echo "$name: MISSING"
+  [[ -f $p || -d $p ]] && echo "  $name: OK" || echo "  $name: MISSING"
+done
+
+echo ""
+echo "=== Binary tools ==="
+for cmd in fzf delta fd rg difft lazygit zoxide eza nvim jq gh; do
+  if command -v $cmd &>/dev/null; then
+    echo "  $cmd: OK ($(command -v $cmd))"
+  else
+    echo "  $cmd: MISSING"
+  fi
 done
 
 echo ""

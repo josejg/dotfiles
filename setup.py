@@ -5,6 +5,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import os
 import platform
 import re
 import shutil
@@ -676,13 +677,24 @@ def setup_nvim_env() -> bool:
         action = "upgrading" if py3_dir.exists() else "creating"
         info(f"nvim-py3: {action} venv")
         if not ARGS.dry_run:
-            if not py3_dir.exists():
-                subprocess.run([sys.executable, "-m", "venv", str(py3_dir)], check=True)
-            pip = str(py3_dir / "bin" / "pip")
-            subprocess.run(
-                [pip, "install", "-q", "--upgrade", "pip", "pynvim"], check=True
-            )
-            ok("nvim-py3: ready")
+            try:
+                if not py3_dir.exists():
+                    subprocess.run(
+                        [sys.executable, "-m", "venv", str(py3_dir)],
+                        check=True,
+                        capture_output=True,
+                    )
+                pip = str(py3_dir / "bin" / "pip")
+                subprocess.run(
+                    [pip, "install", "-q", "--upgrade", "pip", "pynvim"], check=True
+                )
+                ok("nvim-py3: ready")
+            except subprocess.CalledProcessError:
+                warn(
+                    "nvim-py3: venv creation failed"
+                    " (install python3-venv on Debian/Ubuntu)"
+                )
+                success = False
 
     # Node.js
     node_dir = NVIM_DIR / "node"
@@ -716,14 +728,20 @@ def setup_nvim_env() -> bool:
                 else shutil.which("npm")
             )
             if npm:
+                env = _node_env(node_dir) if node_bin.exists() else None
                 subprocess.run(
                     [npm, "update", "-g", "neovim"],
                     check=True,
                     capture_output=True,
+                    env=env,
                 )
                 ok("nvim-node: updated")
 
     return success
+
+
+def _node_env(node_dir: Path) -> dict[str, str]:
+    return {**os.environ, "PATH": f"{node_dir / 'bin'}:{os.environ.get('PATH', '')}"}
 
 
 def _install_node(node_dir: Path) -> bool:
@@ -762,7 +780,10 @@ def _install_node(node_dir: Path) -> bool:
     npm = str(node_dir / "bin" / "npm")
     try:
         subprocess.run(
-            [npm, "install", "-g", "neovim"], check=True, capture_output=True
+            [npm, "install", "-g", "neovim"],
+            check=True,
+            capture_output=True,
+            env=_node_env(node_dir),
         )
     except subprocess.CalledProcessError as exc:
         err(f"npm install neovim failed: {exc}")
