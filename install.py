@@ -196,7 +196,11 @@ def link_file(
             ok(f"({label}) {display}")
             return
 
-        if force or not sys.stdin.isatty():
+        if not sys.stdin.isatty() and not force:
+            fail(f"{dst} exists, skipping (use --force to overwrite)")
+            errors.append(str(dst))
+            return
+        if force:
             if dst.is_symlink():
                 dst.unlink()
             else:

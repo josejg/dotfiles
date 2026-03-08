@@ -202,6 +202,31 @@ def download_file(url: str, dest: Path) -> bool:
         return False
 
 
+def _safe_tar_extract(tf: tarfile.TarFile, dest: str) -> None:
+    """Extract tarfile with path traversal protection."""
+    if hasattr(tarfile, "data_filter"):
+        tf.extractall(dest, filter="data")
+    else:
+        # Python < 3.12: validate members manually
+        dest_path = Path(dest).resolve()
+        for member in tf.getmembers():
+            member_path = (dest_path / member.name).resolve()
+            if not member_path.is_relative_to(dest_path):
+                raise tarfile.TarError(f"Path traversal detected: {member.name}")
+            if member.issym() or member.islnk():
+                link = Path(member.linkname)
+                if link.is_absolute():
+                    raise tarfile.TarError(
+                        f"Absolute symlink in archive: {member.name} -> {member.linkname}"
+                    )
+                resolved = (dest_path / member.name).parent / link
+                if not resolved.resolve().is_relative_to(dest_path):
+                    raise tarfile.TarError(
+                        f"Symlink escape detected: {member.name} -> {member.linkname}"
+                    )
+        tf.extractall(dest)
+
+
 def extract_binary_from_tar(
     archive: Path,
     binary_in_archive: str,
@@ -220,9 +245,8 @@ def extract_binary_from_tar(
                 else:
                     name_after_strip = member.name
                 if name_after_strip == binary_in_archive:
-                    # Extract to temp and move
                     with tempfile.TemporaryDirectory() as td:
-                        tf.extract(member, td)
+                        _safe_tar_extract(tf, td)
                         extracted = Path(td) / member.name
                         shutil.move(str(extracted), str(dest))
                         dest.chmod(0o755)
@@ -239,7 +263,7 @@ def extract_dir_from_tar(archive: Path, dest: Path) -> bool:
     try:
         with tempfile.TemporaryDirectory() as td:
             with tarfile.open(archive) as tf:
-                tf.extractall(td)
+                _safe_tar_extract(tf, td)
             # Find the single top-level directory
             extracted = list(Path(td).iterdir())
             if len(extracted) != 1 or not extracted[0].is_dir():
@@ -458,7 +482,7 @@ BOOTSTRAP_TOOLS = ["gh", "jq"]
 
 
 def _expand(path: str) -> Path:
-    return Path(path.replace("~", str(HOME)))
+    return Path(path).expanduser()
 
 
 def should_install(tool: BinaryTool) -> bool:
@@ -639,23 +663,27 @@ def install_git_dep(name: str, dep: GitDep) -> bool:
         info(f"{name}: updating")
         if ARGS.dry_run:
             return True
-        if dep.shallow:
-            subprocess.run(
-                ["git", "-C", str(dest), "fetch", "--depth=1"],
-                check=True,
-                capture_output=True,
-            )
-            subprocess.run(
-                ["git", "-C", str(dest), "reset", "--hard", "origin/HEAD"],
-                check=True,
-                capture_output=True,
-            )
-        else:
-            subprocess.run(
-                ["git", "-C", str(dest), "pull", "--ff-only"],
-                check=True,
-                capture_output=True,
-            )
+        try:
+            if dep.shallow:
+                subprocess.run(
+                    ["git", "-C", str(dest), "fetch", "--depth=1"],
+                    check=True,
+                    capture_output=True,
+                )
+                subprocess.run(
+                    ["git", "-C", str(dest), "reset", "--hard", "origin/HEAD"],
+                    check=True,
+                    capture_output=True,
+                )
+            else:
+                subprocess.run(
+                    ["git", "-C", str(dest), "pull", "--ff-only"],
+                    check=True,
+                    capture_output=True,
+                )
+        except subprocess.CalledProcessError as exc:
+            err(f"{name}: update failed: {exc.stderr.decode()}")
+            return False
         ok(f"{name}: updated")
         return True
 
@@ -739,12 +767,16 @@ def setup_nvim_env() -> bool:
             if not ARGS.dry_run:
                 npm = shutil.which("npm")
                 if npm:
-                    subprocess.run(
-                        [npm, "install", "-g", "neovim"],
-                        check=True,
-                        capture_output=True,
-                    )
-                    ok("nvim-node: neovim package installed globally")
+                    try:
+                        subprocess.run(
+                            [npm, "install", "-g", "neovim"],
+                            check=True,
+                            capture_output=True,
+                        )
+                        ok("nvim-node: neovim package installed globally")
+                    except subprocess.CalledProcessError as exc:
+                        warn(f"nvim-node: npm install failed: {exc}")
+                        success = False
         else:
             info("nvim-node: downloading Node.js")
             if not ARGS.dry_run:
@@ -760,13 +792,17 @@ def setup_nvim_env() -> bool:
             )
             if npm:
                 env = _node_env(node_dir) if node_bin.exists() else None
-                subprocess.run(
-                    [npm, "update", "-g", "neovim"],
-                    check=True,
-                    capture_output=True,
-                    env=env,
-                )
-                ok("nvim-node: updated")
+                try:
+                    subprocess.run(
+                        [npm, "update", "-g", "neovim"],
+                        check=True,
+                        capture_output=True,
+                        env=env,
+                    )
+                    ok("nvim-node: updated")
+                except subprocess.CalledProcessError as exc:
+                    warn(f"nvim-node: npm update failed: {exc}")
+                    success = False
 
     return success
 
