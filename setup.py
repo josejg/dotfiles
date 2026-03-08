@@ -20,12 +20,13 @@ from pathlib import Path
 # Output helpers
 # ---------------------------------------------------------------------------
 
-BLUE = "\033[34m"
-GREEN = "\033[32m"
-YELLOW = "\033[33m"
-RED = "\033[31m"
-BOLD = "\033[1m"
-RESET = "\033[0m"
+_COLOR = sys.stdout.isatty()
+BLUE = "\033[34m" if _COLOR else ""
+GREEN = "\033[32m" if _COLOR else ""
+YELLOW = "\033[33m" if _COLOR else ""
+RED = "\033[31m" if _COLOR else ""
+BOLD = "\033[1m" if _COLOR else ""
+RESET = "\033[0m" if _COLOR else ""
 
 
 def info(msg: str) -> None:
@@ -271,8 +272,8 @@ def brew_install(package: str, upgrade: bool = False) -> bool:
         return True
     except subprocess.CalledProcessError:
         if action == "upgrade":
-            # brew upgrade exits non-zero when already up-to-date;
-            # check if the package is actually installed and current
+            # brew upgrade exits non-zero for various reasons (not
+            # directly installed, already current, etc.); verify it's present
             try:
                 subprocess.check_call(
                     ["brew", "list", package],
@@ -467,12 +468,11 @@ def should_install(tool: BinaryTool) -> bool:
     if tool.install_dir:
         local_path = _expand(tool.install_dir) / "bin" / tool.binary_name
 
-    if local_path.exists() and not ARGS.upgrade:
+    if local_path.exists():
+        if ARGS.upgrade:
+            return True
         verbose(f"{tool.binary_name}: already in {local_path}, skipping")
         return False
-
-    if local_path.exists() and ARGS.upgrade:
-        return True
 
     # Not in local bin — check system PATH
     system_path = shutil.which(tool.binary_name)
@@ -486,9 +486,8 @@ def should_install(tool: BinaryTool) -> bool:
                 )
                 return False
         else:
-            if not ARGS.upgrade:
-                verbose(f"{tool.binary_name}: found on PATH at {system_path}, skipping")
-                return False
+            verbose(f"{tool.binary_name}: found on PATH at {system_path}, skipping")
+            return False
     return True
 
 
@@ -761,24 +760,18 @@ def setup_nvim_env() -> bool:
     elif ARGS.upgrade:
         info("nvim-node: upgrading neovim package")
         if not ARGS.dry_run:
-            npm = (
-                str(node_dir / "bin" / "npm")
-                if node_bin.exists()
-                else shutil.which("npm")
-            )
-            if npm:
-                env = _node_env(node_dir) if node_bin.exists() else None
-                try:
-                    subprocess.run(
-                        [npm, "update", "-g", "neovim"],
-                        check=True,
-                        capture_output=True,
-                        env=env,
-                    )
-                    ok("nvim-node: updated")
-                except subprocess.CalledProcessError as exc:
-                    warn(f"nvim-node: npm update failed: {exc}")
-                    success = False
+            npm = str(node_dir / "bin" / "npm")
+            try:
+                subprocess.run(
+                    [npm, "update", "-g", "neovim"],
+                    check=True,
+                    capture_output=True,
+                    env=_node_env(node_dir),
+                )
+                ok("nvim-node: updated")
+            except subprocess.CalledProcessError as exc:
+                warn(f"nvim-node: npm update failed: {exc}")
+                success = False
 
     return success
 

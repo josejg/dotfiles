@@ -77,14 +77,9 @@ def is_ignored(rel_path: Path, patterns: list[str]) -> bool:
     rel_str = str(rel_path)
     parts = rel_path.parts
     for pat in patterns:
-        # Match against the full relative path
         if fnmatch.fnmatch(rel_str, pat):
             return True
-        # Match against each individual component
-        for part in parts:
-            if fnmatch.fnmatch(part, pat):
-                return True
-        # Match against each suffix subpath (e.g. "db/dhist" within "a/b/db/dhist")
+        # Match against each suffix subpath (covers individual components too)
         for i in range(len(parts)):
             subpath = str(Path(*parts[i:]))
             if fnmatch.fnmatch(subpath, pat):
@@ -374,6 +369,7 @@ def main() -> None:
         for name in selected:
             if name not in PACKAGES:
                 fail(f"unknown package: {name}")
+                errors.append(name)
                 continue
             removed += unlink_package(
                 name,
@@ -383,6 +379,8 @@ def main() -> None:
                 verbose=args.verbose,
             )
         print(f"\n  {removed} symlink(s) {'would be ' if args.dry_run else ''}removed")
+        if errors:
+            sys.exit(1)
         return
 
     timestamp = datetime.now(timezone.utc).strftime("%Y%m%d%H%M%S")
