@@ -6,6 +6,7 @@ RUN DEBIAN_FRONTEND=noninteractive apt-get update -qq && \
     apt-get clean && rm -rf /var/lib/apt/lists/*
 
 COPY test-shell.sh /usr/local/bin/test-shell
+COPY bench-startup.sh /usr/local/bin/bench-startup
 WORKDIR /root/.dotfiles
 
 # Entrypoint: clean stale rc files, run setup.py + install.py, then exec CMD

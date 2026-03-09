@@ -5,3 +5,9 @@ services:
       - .:/root/.dotfiles
     stdin_open: true
     tty: true
+
+  bench:
+    build: .
+    volumes:
+      - .:/root/.dotfiles
+    command: ["bench-startup", "--threshold", "200"]
