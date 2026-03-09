@@ -24,8 +24,7 @@ setopt HIST_IGNORE_SPACE      # ignore commands starting with space
 setopt HIST_IGNORE_ALL_DUPS   # remove older duplicate
 setopt HIST_SAVE_NO_DUPS      # don't write duplicates
 setopt HIST_FIND_NO_DUPS      # skip duplicates in search
-setopt SHARE_HISTORY          # share history between sessions
-setopt INC_APPEND_HISTORY     # write immediately, not on exit
+setopt SHARE_HISTORY          # share history between sessions (implies INC_APPEND_HISTORY)
 
 # ---------------------------------------------------------------------------
 # Completion
@@ -202,9 +201,9 @@ for f in ~/.config/shell/*.sh; do
   [[ -f "$f" ]] && source "$f"
 done
 
-# Tmuxinator completions
-if [[ -f ~/.bin/tmuxinator.zsh ]]; then
-  source ~/.bin/tmuxinator.zsh
+# Zoxide
+if command -v zoxide > /dev/null; then
+  eval "$(zoxide init zsh)"
 fi
 
 # ---------------------------------------------------------------------------

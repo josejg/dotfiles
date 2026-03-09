@@ -4,11 +4,11 @@
 
 mvr() {
     # reverse mv
-    mv $2 $1
+    mv "$2" "$1"
 }
 
 gacp() {
-    git add $@ && git commit -m fix && git push
+    git add "$@" && git commit -m fix && git push
 }
 
 gds() {
@@ -21,12 +21,12 @@ setTerminalText() {
     local mode=$1 ; shift
     echo -ne "\033]$mode;$@\007"
 }
-stt_both()  { setTerminalText 0 $@; }
-stt_tab()   { setTerminalText 1 $@; }
-stt_title() { setTerminalText 2 $@; }
+stt_both()  { setTerminalText 0 "$@"; }
+stt_tab()   { setTerminalText 1 "$@"; }
+stt_title() { setTerminalText 2 "$@"; }
 
-tn() { stt_tab $@ && tmux new -s $@; }
-ta() { stt_tab $@ && tmux a -t $@; }
+tn() { stt_tab "$@" && tmux new -s "$@"; }
+ta() { stt_tab "$@" && tmux a -t "$@"; }
 
 sort-yaml() {
     yq -P 'sort_keys(..)' "$1"
@@ -40,7 +40,7 @@ vdiff-yaml() {
     yq -P 'sort_keys(..)' "$1" >! ".sorted_$1"
     yq -P 'sort_keys(..)' "$2" >! ".sorted_$2"
     nvim -d ".sorted_$1" ".sorted_$2"
-    \rm ".sorted_$1" ".sorted_$2"
+    command rm ".sorted_$1" ".sorted_$2"
 }
 
 yd() {
@@ -58,7 +58,7 @@ vyd() {
     fi
     yaml-sort-as $1 $2 -o ".sorted_$1"
     nvim -d ".sorted_$1" $2
-    \rm ".sorted_$1"
+    command rm ".sorted_$1"
 }
 
 notify-complete() {
@@ -132,8 +132,9 @@ fi
 ###########################################################################################################################
 
 # Crypto
-enc() { openssl enc -aes-256-cbc -salt -in "$1" -out "$1.enc"; }
-dec() { openssl enc -aes-256-cbc -d -in "$1" -out "${1%.*}"; }
+# NOTE: -pbkdf2 is incompatible with files encrypted before this change
+enc() { openssl enc -aes-256-cbc -pbkdf2 -iter 100000 -salt -in "$1" -out "$1.enc"; }
+dec() { openssl enc -aes-256-cbc -pbkdf2 -iter 100000 -d -in "$1" -out "${1%.*}"; }
 
 # Quick dated draft in Sublime Text
 draft() { subl -n "$(date -u +"$HOME/Downloads/%Y%m%d%H%M%S.txt")"; }

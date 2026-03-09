@@ -7,13 +7,13 @@
 # PATH
 
 function prepend_path() {
-    if [ -d $1 ]; then
+    if [ -d "$1" ]; then
         export PATH="$1:$PATH"
     fi
 }
 
 function append_path() {
-    if [ -d $1 ]; then
+    if [ -d "$1" ]; then
         export PATH="$PATH:$1"
     fi
 }
@@ -28,7 +28,7 @@ prepend_path "/usr/local/opt/ruby/bin"
 prepend_path "$HOME/.neovim/bin"
 append_path "$HOME/.neovim/node/bin"
 append_path "$HOME/.emacs.d/bin"
-append_path "/opt/homebrew/bin"
+prepend_path "/opt/homebrew/bin"
 
 here() {
     local loc
@@ -79,8 +79,13 @@ if [[ "$(uname -s)" == "Darwin" ]]; then
 fi
 
 # Editors
-export EDITOR='vim'
-export VISUAL='vim'
+if command -v nvim > /dev/null 2>&1; then
+    export EDITOR='nvim'
+    export VISUAL='nvim'
+else
+    export EDITOR='vim'
+    export VISUAL='vim'
+fi
 
 # Pager
 export PAGER='less'
@@ -109,10 +114,9 @@ fi
 
 # Misc Software
 
-# Zoxide init
+# Zoxide cd override (init is done in each shell's rc file)
 if command -v zoxide > /dev/null; then
-    eval "$(zoxide init zsh)"
-    cd() { builtin cd "$@" 2>/dev/null || z "$@" }
+    cd() { builtin cd "$@" || z "$@"; }
 fi
 
 # Ansible

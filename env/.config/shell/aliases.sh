@@ -1,4 +1,3 @@
-#!/usr/bin/env zsh
 function alias_if_exists() {
     if command -v $2 > /dev/null; then
         alias "$1"="$2"
@@ -86,9 +85,10 @@ case "$(uname -s)" in
        alias_if_exists "$i" "g$i"
      done
      alias_if_exists "id" "/usr/local/bin/gid"
-     alias rm="/opt/homebrew/bin/grm -i"
-     alias mv="/opt/homebrew/bin/gmv -i"
-     alias cp="/opt/homebrew/bin/gcp -i"
+     # Add -i to destructive commands (works with GNU coreutils from alias_if_exists loop)
+     alias rm='rm -i'
+     alias mv='mv -i'
+     alias cp='cp -i'
      alias sudoedit="sudo -E vim"
      ;;
 
