@@ -25,7 +25,7 @@ PACKAGES: dict[str, str] = {
     "python": "all",
     "scripts": "all",
     "tmux": "all",
-    "vim": "all",
+    "nvim": "all",
     "zsh": "all",
     "mac": "darwin",
     "terminal": "all",

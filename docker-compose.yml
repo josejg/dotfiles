@@ -11,3 +11,15 @@ services:
     volumes:
       - .:/root/.dotfiles
     command: ["bench-startup", "--threshold", "200"]
+
+  nvim:
+    build: .
+    volumes:
+      - .:/root/.dotfiles
+      - nvim-data:/root/.local/share/nvim
+    stdin_open: true
+    tty: true
+    command: ["nvim"]
+
+volumes:
+  nvim-data:

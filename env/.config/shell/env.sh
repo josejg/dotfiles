@@ -25,8 +25,6 @@ prepend_path "$HOME/.secbin"       # Secret custom scripts
 prepend_path "$HOME/.local/bin"
 prepend_path "$HOME/.local/bin/host"  # Machine-specific scripts (not managed by stow)
 prepend_path "/usr/local/opt/ruby/bin"
-prepend_path "$HOME/.neovim/bin"
-append_path "$HOME/.neovim/node/bin"
 append_path "$HOME/.emacs.d/bin"
 prepend_path "/opt/homebrew/bin"
 

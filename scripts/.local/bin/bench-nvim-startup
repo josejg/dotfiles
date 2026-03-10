@@ -1,0 +1,99 @@
+#!/usr/bin/env bash
+# Benchmark neovim startup time and identify slow plugins
+set -euo pipefail
+
+RUNS=${1:-10}
+TMPDIR=$(mktemp -d)
+trap 'rm -rf "$TMPDIR"' EXIT
+
+printf "Running %d iterations...\n\n" "$RUNS"
+
+# ---------- collect startuptime logs ----------
+for i in $(seq 1 "$RUNS"); do
+    nvim --headless --startuptime "$TMPDIR/run_$i.log" +q 2>/dev/null
+done
+
+# ---------- total startup time per run ----------
+totals=()
+for i in $(seq 1 "$RUNS"); do
+    # last line with a time is the total
+    t=$(awk '/^[0-9]/{last=$1} END{print last}' "$TMPDIR/run_$i.log")
+    totals+=("$t")
+done
+
+avg=$(printf '%s\n' "${totals[@]}" | awk '{s+=$1} END{printf "%.2f", s/NR}')
+min=$(printf '%s\n' "${totals[@]}" | sort -g | head -1 | awk '{printf "%.2f", $1}')
+max=$(printf '%s\n' "${totals[@]}" | sort -g | tail -1 | awk '{printf "%.2f", $1}')
+med=$(printf '%s\n' "${totals[@]}" | sort -g | awk -v n="$RUNS" 'NR==int(n/2)+1{printf "%.2f", $1}')
+
+printf "=== Startup Time (%d runs) ===\n" "$RUNS"
+printf "  avg: %s ms\n" "$avg"
+printf "  min: %s ms\n" "$min"
+printf "  max: %s ms\n" "$max"
+printf "  med: %s ms\n\n" "$med"
+
+# ---------- per-source breakdown (averaged across runs) ----------
+# Aggregate sourcing times: lines like "123.456  000.789: sourcing /path/to/file"
+# We want the self-time (second number) grouped by source file
+cat "$TMPDIR"/run_*.log \
+    | grep 'sourcing ' \
+    | awk '{
+        # second field is self-time, last field is the file path
+        time = $2
+        gsub(/^0+/, "", time)
+        file = $NF
+        sum[file] += time
+        count[file] += 1
+    }
+    END {
+        for (f in sum) {
+            avg = sum[f] / count[f]
+            printf "%.3f\t%s\n", avg, f
+        }
+    }' \
+    | sort -rn \
+    | head -30 \
+    | awk -F'\t' 'BEGIN {
+        printf "=== Top 30 Slowest Sources (avg self-time) ===\n"
+        printf "%-10s  %s\n", "ms", "source"
+        printf "%-10s  %s\n", "──────", "──────"
+    }
+    {
+        printf "%-10s  %s\n", $1, $2
+    }'
+
+# ---------- lazy.nvim plugin profile ----------
+printf "\n=== Lazy.nvim Plugin Load Times ===\n"
+# Run once more capturing lazy profile data via lua
+nvim --headless +"lua
+    vim.defer_fn(function()
+        local stats = require('lazy').stats()
+        local plugins = require('lazy').plugins()
+        -- collect and sort by load time
+        local loaded = {}
+        for _, p in ipairs(plugins) do
+            if p._.loaded then
+                -- lazy.nvim stores time in seconds (float), convert to ms
+                local t = (p._.loaded.time or 0)
+                -- detect if value is unreasonably large (nanoseconds/hrtime)
+                if t > 10000 then t = t / 1e6 end
+                table.insert(loaded, { name = p.name, time = t })
+            end
+        end
+        table.sort(loaded, function(a, b) return a.time > b.time end)
+        local lines = {}
+        table.insert(lines, string.format('  Total: %.2f ms (%d/%d plugins loaded)', stats.startuptime, stats.loaded, stats.count))
+        table.insert(lines, string.format('  %-10s  %s', 'ms', 'plugin'))
+        table.insert(lines, string.format('  %-10s  %s', '──────', '──────'))
+        for _, p in ipairs(loaded) do
+            table.insert(lines, string.format('  %-10.2f  %s', p.time, p.name))
+        end
+        -- write to stderr so it survives --headless
+        for _, l in ipairs(lines) do
+            io.stderr:write(l .. '\n')
+        end
+        vim.cmd('qa!')
+    end, 100)
+" 2>&1
+
+printf "\nDone. Raw logs saved in: %s\n" "$TMPDIR"

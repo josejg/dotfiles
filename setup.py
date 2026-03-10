@@ -5,7 +5,6 @@ from __future__ import annotations
 
 import argparse
 import json
-import os
 import platform
 import re
 import shutil
@@ -307,6 +306,18 @@ class BinaryTool:
 
 
 BINARY_TOOLS: dict[str, BinaryTool] = {
+    "zsh": BinaryTool(
+        repo="romkatv/zsh-bin",
+        binary_name="zsh",
+        brew_name="zsh",
+        assets={
+            "linux_x86_64": "zsh-5.8-linux-x86_64.tar.gz",
+            "linux_arm64": "zsh-5.8-linux-aarch64.tar.gz",
+            "darwin_x86_64": "zsh-5.8-darwin-x86_64.tar.gz",
+            "darwin_arm64": "zsh-5.8-darwin-arm64.tar.gz",
+        },
+        binary_in_archive="bin/zsh",
+    ),
     "gh": BinaryTool(
         repo="cli/cli",
         binary_name="gh",
@@ -436,6 +447,42 @@ BINARY_TOOLS: dict[str, BinaryTool] = {
         },
         binary_in_archive="eza",
     ),
+    "shellcheck": BinaryTool(
+        repo="koalaman/shellcheck",
+        binary_name="shellcheck",
+        brew_name="shellcheck",
+        assets={
+            "linux_x86_64": "shellcheck-v{v}.linux.x86_64.tar.gz",
+            "linux_arm64": "shellcheck-v{v}.linux.aarch64.tar.gz",
+            "darwin_x86_64": "shellcheck-v{v}.darwin.x86_64.tar.gz",
+            "darwin_arm64": "shellcheck-v{v}.darwin.aarch64.tar.gz",
+        },
+        strip_components=1,
+        binary_in_archive="shellcheck",
+    ),
+    "shfmt": BinaryTool(
+        repo="mvdan/sh",
+        binary_name="shfmt",
+        brew_name="shfmt",
+        assets={
+            "linux_x86_64": "shfmt_v{v}_linux_amd64",
+            "linux_arm64": "shfmt_v{v}_linux_arm64",
+            "darwin_x86_64": "shfmt_v{v}_darwin_amd64",
+            "darwin_arm64": "shfmt_v{v}_darwin_arm64",
+        },
+    ),
+    "tmux": BinaryTool(
+        repo="tmux/tmux-builds",
+        binary_name="tmux",
+        brew_name="tmux",
+        assets={
+            "linux_x86_64": "tmux-{v}-linux-x86_64.tar.gz",
+            "linux_arm64": "tmux-{v}-linux-arm64.tar.gz",
+            "darwin_x86_64": None,
+            "darwin_arm64": None,
+        },
+        binary_in_archive="tmux",
+    ),
     "nvim": BinaryTool(
         repo="neovim/neovim",
         binary_name="nvim",
@@ -451,7 +498,7 @@ BINARY_TOOLS: dict[str, BinaryTool] = {
 }
 
 # Bootstrap order: gh and jq first for authenticated API access
-BOOTSTRAP_TOOLS = ["gh", "jq"]
+BOOTSTRAP_TOOLS = ["zsh", "gh", "jq"]
 
 # ---------------------------------------------------------------------------
 # Core install logic
@@ -523,7 +570,7 @@ def install_binary_tool(name: str, tool: BinaryTool) -> bool:
         if not tag:
             err(f"{name}: could not determine latest version")
             return False
-        version = version_from_tag(tag)
+        version = tag.removeprefix(tool.tag_prefix) if tool.tag_prefix else version_from_tag(tag)
 
     asset_name = asset_template.format(v=version)
     url = f"https://github.com/{tool.repo}/releases/download/{tag}/{asset_name}"
@@ -680,127 +727,48 @@ def install_git_dep(name: str, dep: GitDep) -> bool:
 
 
 # ---------------------------------------------------------------------------
-# Neovim environment setup
+# Node.js
 # ---------------------------------------------------------------------------
 
-NVIM_DIR = HOME / ".neovim"
+NODE_DIR = HOME / ".local" / "node"
 
 
-def setup_nvim_env() -> bool:
-    """Set up Python venv and Node.js for Neovim providers."""
-    success = True
+def install_node() -> bool:
+    """Install Node.js LTS for Mason npm tools and copilot.lua."""
+    node_symlink = LOCAL_BIN / "node"
+    if node_symlink.exists() or (NODE_DIR / "bin" / "node").exists():
+        if not ARGS.upgrade:
+            ok("node: up to date")
+            return True
 
-    # Python venv
-    py3_dir = NVIM_DIR / "py3"
-    if py3_dir.exists() and not ARGS.upgrade:
-        # Check if venv is healthy (python binary exists and works)
-        py3_bin = py3_dir / "bin" / "python3"
-        try:
-            subprocess.check_output(
-                [str(py3_bin), "-c", "import sys; print(sys.version)"],
-                timeout=5,
-                stderr=subprocess.STDOUT,
-            )
-            ok("nvim-py3: venv healthy")
-        except (subprocess.CalledProcessError, FileNotFoundError, OSError):
-            warn("nvim-py3: venv broken, recreating")
-            if not ARGS.dry_run:
-                shutil.rmtree(py3_dir)
-                # Fall through to create it
-    if not py3_dir.exists() or ARGS.upgrade:
-        action = "upgrading" if py3_dir.exists() else "creating"
-        info(f"nvim-py3: {action} venv")
-        if not ARGS.dry_run:
-            try:
-                if not py3_dir.exists():
-                    subprocess.run(
-                        [sys.executable, "-m", "venv", str(py3_dir)],
-                        check=True,
-                        capture_output=True,
-                    )
-                pip = str(py3_dir / "bin" / "pip")
-                subprocess.run(
-                    [pip, "install", "-q", "--upgrade", "pip", "pynvim"], check=True
-                )
-                ok("nvim-py3: ready")
-            except subprocess.CalledProcessError:
-                warn(
-                    "nvim-py3: venv creation failed"
-                    " (install python3-venv on Debian/Ubuntu)"
-                )
-                success = False
+    if shutil.which("node") and not ARGS.upgrade:
+        ok("node: found on PATH")
+        return True
 
-    # Node.js
-    node_dir = NVIM_DIR / "node"
-    node_bin = node_dir / "bin" / "node"
-    if node_bin.exists() and not ARGS.upgrade:
-        ok("nvim-node: installed")
-    elif not node_bin.exists():
-        # Check if node is available system-wide
-        if shutil.which("node"):
-            info("nvim-node: using system node")
-            if not ARGS.dry_run:
-                npm = shutil.which("npm")
-                if npm:
-                    try:
-                        subprocess.run(
-                            [npm, "install", "-g", "neovim"],
-                            check=True,
-                            capture_output=True,
-                        )
-                        ok("nvim-node: neovim package installed globally")
-                    except subprocess.CalledProcessError as exc:
-                        warn(f"nvim-node: npm install failed: {exc}")
-                        success = False
-        else:
-            info("nvim-node: downloading Node.js")
-            if not ARGS.dry_run:
-                if not _install_node(node_dir):
-                    success = False
-    elif ARGS.upgrade:
-        info("nvim-node: upgrading neovim package")
-        if not ARGS.dry_run:
-            npm = str(node_dir / "bin" / "npm")
-            try:
-                subprocess.run(
-                    [npm, "update", "-g", "neovim"],
-                    check=True,
-                    capture_output=True,
-                    env=_node_env(node_dir),
-                )
-                ok("nvim-node: updated")
-            except subprocess.CalledProcessError as exc:
-                warn(f"nvim-node: npm update failed: {exc}")
-                success = False
+    if SYSTEM == "darwin" and has_brew():
+        info("node: installing via brew")
+        if ARGS.dry_run:
+            return True
+        return brew_install("node", upgrade=ARGS.upgrade)
 
-    return success
+    info("node: downloading LTS from nodejs.org")
+    if ARGS.dry_run:
+        return True
 
-
-def _node_env(node_dir: Path) -> dict[str, str]:
-    return {**os.environ, "PATH": f"{node_dir / 'bin'}:{os.environ.get('PATH', '')}"}
-
-
-def _install_node(node_dir: Path) -> bool:
-    """Download and install Node.js LTS to node_dir."""
     node_arch = "arm64" if ARCH == "arm64" else "x64"
     node_os = "darwin" if SYSTEM == "darwin" else "linux"
 
-    # Get latest LTS version from nodejs.org
     try:
         with urllib.request.urlopen(
             "https://nodejs.org/dist/index.json", timeout=10
         ) as resp:
             versions = json.loads(resp.read())
-        lts_version = None
-        for v in versions:
-            if v.get("lts"):
-                lts_version = v["version"]
-                break
+        lts_version = next((v["version"] for v in versions if v.get("lts")), None)
         if not lts_version:
-            err("Could not find Node.js LTS version")
+            err("node: could not find LTS version")
             return False
     except Exception as exc:
-        err(f"Failed to fetch Node.js versions: {exc}")
+        err(f"node: failed to fetch versions: {exc}")
         return False
 
     tarball = f"node-{lts_version}-{node_os}-{node_arch}.tar.gz"
@@ -810,22 +778,16 @@ def _install_node(node_dir: Path) -> bool:
         dl_path = Path(td) / tarball
         if not download_file(url, dl_path):
             return False
-        if not extract_dir_from_tar(dl_path, node_dir):
+        if not extract_dir_from_tar(dl_path, NODE_DIR):
             return False
 
-    npm = str(node_dir / "bin" / "npm")
-    try:
-        subprocess.run(
-            [npm, "install", "-g", "neovim"],
-            check=True,
-            capture_output=True,
-            env=_node_env(node_dir),
-        )
-    except subprocess.CalledProcessError as exc:
-        err(f"npm install neovim failed: {exc}")
-        return False
+    LOCAL_BIN.mkdir(parents=True, exist_ok=True)
+    for binary in ("node", "npm", "npx"):
+        symlink = LOCAL_BIN / binary
+        symlink.unlink(missing_ok=True)
+        symlink.symlink_to(NODE_DIR / "bin" / binary)
 
-    ok("nvim-node: installed")
+    ok(f"node: installed {lts_version} to {NODE_DIR}")
     return True
 
 
@@ -885,7 +847,7 @@ def main() -> None:
     ARGS = parser.parse_args()
 
     requested = set(ARGS.tools) if ARGS.tools else None
-    all_names = set(BINARY_TOOLS) | set(GIT_DEPS) | {"nvim-env", "claude-code"}
+    all_names = set(BINARY_TOOLS) | set(GIT_DEPS) | {"node", "claude-code"}
     if requested:
         unknown = requested - all_names
         if unknown:
@@ -921,10 +883,10 @@ def main() -> None:
         if not install_git_dep(name, dep):
             failures.append(name)
 
-    # Phase 4: Neovim environment
-    if not requested or "nvim-env" in requested:
-        if not setup_nvim_env():
-            failures.append("nvim-env")
+    # Phase 4: Node.js
+    if not requested or "node" in requested:
+        if not install_node():
+            failures.append("node")
 
     # Phase 5: Claude Code
     if not requested or "claude-code" in requested:

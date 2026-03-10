@@ -10,7 +10,7 @@ COPY bench-startup.sh /usr/local/bin/bench-startup
 WORKDIR /root/.dotfiles
 
 # Entrypoint: clean stale rc files, run setup.py + install.py, then exec CMD
-RUN printf '#!/bin/zsh\nrm -f ~/.zshrc ~/.zshenv ~/.zprofile ~/.zlogin ~/.common ~/.aliases ~/.p10k.zsh 2>/dev/null\nrm -rf ~/.config/shell 2>/dev/null\ncd /root/.dotfiles\npython3 setup.py\npython3 install.py --force zsh env\nexec "$@"\n' > /entrypoint.sh && \
+RUN printf '#!/bin/zsh\nrm -f ~/.zshrc ~/.zshenv ~/.zprofile ~/.zlogin ~/.common ~/.aliases ~/.p10k.zsh 2>/dev/null\nrm -rf ~/.config/shell ~/.config/nvim 2>/dev/null\ncd /root/.dotfiles\npython3 setup.py zsh tmux nvim fd node\npython3 install.py --force zsh env nvim\nexec "$@"\n' > /entrypoint.sh && \
     chmod +x /entrypoint.sh
 
 ENTRYPOINT ["/entrypoint.sh"]
