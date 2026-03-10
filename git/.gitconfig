@@ -1,6 +1,7 @@
 [user]
 	name = Jose Javier
 	email = 26491792+josejg@users.noreply.github.com
+	useConfigOnly = true
 [core]
 	editor = nvim
 	excludesfile = ~/.gitignore_global
@@ -74,6 +75,12 @@
     wip = for-each-ref --sort='authordate:iso8601' --format=' %(color:green)%(authordate:relative)%09%(color:white)%(refname:short)' refs/heads
     dlog = "-c diff.external=difft log -p --ext-diff"
     difft = "-c diff.external=difft diff"
+    fpush = push --force-with-lease
+    targz = "! targz() { git archive --format tar.gz --prefix=\"${PWD##*/}/\" HEAD -o ${1}; }; targz"
+    zip = "! zip() { git archive --format zip --prefix=\"${PWD##*/}/\" HEAD -o ${1}; }; zip"
+
+[url "git@github.com:"]
+    insteadOf = "gh:"
 
 [filter "lfs"]
 	required = true

@@ -1,0 +1,21 @@
+#!/usr/bin/env bash
+# Deploy local terminal's terminfo to a remote host.
+# Fixes broken rendering when SSHing from Kitty/Alacritty/other modern terminals
+# whose terminfo entries aren't installed on the remote server.
+#
+# Usage: deploy-terminfo <host> [terminal]
+#   host      SSH hostname or alias
+#   terminal  Terminal type to deploy (defaults to $TERM)
+
+set -euo pipefail
+
+host="${1:?Usage: deploy-terminfo <host> [terminal]}"
+term="${2:-$TERM}"
+tmpfile=$(mktemp)
+
+infocmp "$term" > "$tmpfile"
+scp "$tmpfile" "$host:term.ti"
+ssh "$host" "tic term.ti && rm term.ti"
+rm "$tmpfile"
+
+echo "Deployed terminfo for '$term' to $host"

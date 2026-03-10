@@ -35,6 +35,7 @@ alias gd='git diff'
 alias gsu='git stash && git pull && git stash pop'
 alias ghostscript="/usr/local/bin/gs"
 alias gdt="git -c diff.external=difft diff"
+alias gpr='gh pr create -t "$(git show -s --format=%s HEAD)" -b "$(git show -s --format=%B HEAD | tail -n+3)" --web'
 
 ## Jupyter
 alias jc="jupyter console"
