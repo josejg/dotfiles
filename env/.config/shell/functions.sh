@@ -6,13 +6,6 @@
 mcd() { mkdir -p "$1" && cd "$1" || return; }
 cdgr() { cd "$(git rev-parse --show-toplevel)" || return; }
 
-up() {
-    local count="${1:-1}"
-    local path=""
-    for ((i = 0; i < count; i++)); do path="../$path"; done
-    cd "$path" || return
-}
-
 # Persistent directory bookmarking via symlink
 here() { ln -sfn "${1:-$PWD}" ~/.shell.here; }
 there() { cd "$(readlink ~/.shell.here)" || return; }
