@@ -11,14 +11,13 @@ Each top-level directory is a package whose files are symlinked into `$HOME` by 
 | `bash` | `.bashrc`, `.bash_profile`, `.bash_logout` |
 | `env` | `~/.config/shell/{env,aliases,functions}.sh` -- shared shell config sourced by both zsh and bash |
 | `git` | `.gitconfig` -- delta pager, histogram diff, rerere, zdiff3 |
-| `latex` | LaTeX template system (`latex-init`, `clean-latex`, `md2list`) |
 | `mac` | macOS-specific: Alacritty, Karabiner, yabai, Hammerspoon |
+| `nvim` | Neovim config (lazy.nvim, treesitter, LSP, mason) |
 | `python` | IPython, matplotlib, ruff, pyright configs |
 | `scripts` | Utility scripts in `~/.local/bin/` |
 | `terminal` | Kitty config |
-| `tmux` | `.tmux.conf` + TPM plugins |
-| `vim` | Neovim / Vim configuration |
-| `zsh` | Hand-rolled zsh config (8 plugins, compinit, keybindings, p10k) |
+| `tmux` | `.tmux.conf` -- tmux configuration |
+| `zsh` | Hand-rolled zsh config (XDG-aware, 8 plugins, compinit, keybindings, p10k) |
 
 ### Setup
 

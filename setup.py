@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+# NOTE: This script intentionally uses only stdlib to bootstrap from a bare system.
 """Bootstrap and install development tools for macOS and Linux."""
 
 from __future__ import annotations
@@ -294,6 +295,7 @@ def brew_install(package: str, upgrade: bool = False) -> bool:
                     stdout=subprocess.DEVNULL,
                     stderr=subprocess.DEVNULL,
                 )
+                warn(f"brew upgrade {package} failed but package exists, continuing")
                 return True  # package exists, was just already current
             except subprocess.CalledProcessError:
                 return False  # genuinely broken
@@ -325,6 +327,8 @@ BINARY_TOOLS: dict[str, BinaryTool] = {
         repo="romkatv/zsh-bin",
         binary_name="zsh",
         brew_name="zsh",
+        # Asset names are always "zsh-5.8-*" regardless of actual version;
+        # romkatv/zsh-bin uses fixed filenames across releases.
         assets={
             "linux_x86_64": "zsh-5.8-linux-x86_64.tar.gz",
             "linux_arm64": "zsh-5.8-linux-aarch64.tar.gz",
@@ -864,7 +868,7 @@ def install_claude_code() -> bool:
 # uv tools (Python CLI tools installed via uv tool install)
 # ---------------------------------------------------------------------------
 
-UV_TOOLS = ["ruff", "yamllint"]
+UV_TOOLS = ["ruff", "yamllint", "magic-wormhole"]
 
 
 def install_uv_tools() -> bool:

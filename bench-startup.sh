@@ -34,19 +34,11 @@ for ((i = 1; i <= WARMUP; i++)); do
   zsh -i -c exit 2>/dev/null
 done
 
-# Collect timings using zsh's built-in EPOCHREALTIME
+# Collect timings using zsh -i (consistent with warmup)
 echo "Benchmarking ($ITERATIONS runs)..."
 times=()
 for ((i = 1; i <= ITERATIONS; i++)); do
-  # Use zsh -c with EPOCHREALTIME to measure from inside
-  t=$(zsh -c '
-    zmodload zsh/datetime
-    start=$EPOCHREALTIME
-    # Source the full interactive init
-    emulate zsh -c "source ~/.zshrc" 2>/dev/null
-    end=$EPOCHREALTIME
-    printf "%.1f" $(( (end - start) * 1000 ))
-  ' 2>/dev/null)
+  t=$(zsh -i -c 'zmodload zsh/datetime; printf "%.1f" $(( SECONDS * 1000 ))' 2>/dev/null)
   times+=($t)
   printf "  run %2d: %s ms\n" "$i" "$t"
 done
