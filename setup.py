@@ -466,6 +466,19 @@ BINARY_TOOLS: dict[str, BinaryTool] = {
         },
         binary_in_archive="eza",
     ),
+    "bat": BinaryTool(
+        repo="sharkdp/bat",
+        binary_name="bat",
+        brew_name="bat",
+        assets={
+            "linux_x86_64": "bat-v{v}-x86_64-unknown-linux-musl.tar.gz",
+            "linux_arm64": "bat-v{v}-aarch64-unknown-linux-musl.tar.gz",
+            "darwin_x86_64": "bat-v{v}-x86_64-apple-darwin.tar.gz",
+            "darwin_arm64": "bat-v{v}-aarch64-apple-darwin.tar.gz",
+        },
+        strip_components=1,
+        binary_in_archive="bat",
+    ),
     "uv": BinaryTool(
         repo="astral-sh/uv",
         binary_name="uv",

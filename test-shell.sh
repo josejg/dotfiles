@@ -47,6 +47,7 @@ typeset -A version_flags=(
   [lazygit]="--version"
   [zoxide]="--version"
   [eza]="--version"
+  [bat]="--version"
   [nvim]="--version"
   [jq]="--version"
   [gh]="--version"
