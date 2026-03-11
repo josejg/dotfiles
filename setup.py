@@ -243,7 +243,10 @@ def extract_binary_from_tar(
 
 
 def extract_dir_from_tar(archive: Path, dest: Path) -> bool:
-    """Extract an entire tar.gz to dest (for nvim-style full-directory installs)."""
+    """Extract an entire tar.gz to dest.
+
+    Handles both single-directory archives (nvim) and flat archives (zsh-bin).
+    """
     try:
         with tempfile.TemporaryDirectory() as td:
             subprocess.run(
@@ -252,12 +255,14 @@ def extract_dir_from_tar(archive: Path, dest: Path) -> bool:
                 capture_output=True,
             )
             extracted = list(Path(td).iterdir())
-            if len(extracted) != 1 or not extracted[0].is_dir():
-                err("Expected single directory in archive")
-                return False
             if dest.exists():
                 shutil.rmtree(dest)
-            shutil.move(str(extracted[0]), str(dest))
+            if len(extracted) == 1 and extracted[0].is_dir():
+                # Single wrapping directory (e.g. nvim-linux-x86_64/)
+                shutil.move(str(extracted[0]), str(dest))
+            else:
+                # Flat archive (e.g. bin/, share/, man/)
+                shutil.move(td, str(dest))
         return True
     except Exception as exc:
         err(f"Directory extraction failed: {exc}")
@@ -325,7 +330,7 @@ BINARY_TOOLS: dict[str, BinaryTool] = {
             "darwin_x86_64": "zsh-5.8-darwin-x86_64.tar.gz",
             "darwin_arm64": "zsh-5.8-darwin-arm64.tar.gz",
         },
-        binary_in_archive="bin/zsh",
+        install_dir="~/.local/zsh-bin",
     ),
     "gh": BinaryTool(
         repo="cli/cli",
@@ -595,11 +600,19 @@ def install_binary_tool(name: str, tool: BinaryTool) -> bool:
         if not download_file(url, dl_path):
             return False
 
-        # Special case: nvim needs full directory extraction
+        # Full directory extraction (nvim, zsh-bin, etc.)
         if tool.install_dir:
             install_path = _expand(tool.install_dir)
             if not extract_dir_from_tar(dl_path, install_path):
                 return False
+            # zsh-bin: patch hardcoded paths to match install location
+            relocate = install_path / "share" / "zsh" / "5.8" / "scripts" / "relocate"
+            if relocate.exists():
+                subprocess.run(
+                    [str(relocate), "-d", str(install_path)],
+                    check=True,
+                    capture_output=True,
+                )
             # Create symlink
             symlink = LOCAL_BIN / tool.binary_name
             symlink.unlink(missing_ok=True)
