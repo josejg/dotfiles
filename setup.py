@@ -11,7 +11,9 @@ import shutil
 import subprocess
 import sys
 import tempfile
+import threading
 import urllib.request
+from concurrent.futures import ThreadPoolExecutor, as_completed
 from dataclasses import dataclass
 from pathlib import Path
 
@@ -27,26 +29,33 @@ RED = "\033[31m" if _COLOR else ""
 BOLD = "\033[1m" if _COLOR else ""
 RESET = "\033[0m" if _COLOR else ""
 
+_print_lock = threading.Lock()
+
 
 def info(msg: str) -> None:
-    print(f"{BLUE}::{RESET} {msg}")
+    with _print_lock:
+        print(f"{BLUE}::{RESET} {msg}")
 
 
 def ok(msg: str) -> None:
-    print(f"{GREEN}OK{RESET} {msg}")
+    with _print_lock:
+        print(f"{GREEN}OK{RESET} {msg}")
 
 
 def warn(msg: str) -> None:
-    print(f"{YELLOW}WARN{RESET} {msg}")
+    with _print_lock:
+        print(f"{YELLOW}WARN{RESET} {msg}")
 
 
 def err(msg: str) -> None:
-    print(f"{RED}ERR{RESET} {msg}", file=sys.stderr)
+    with _print_lock:
+        print(f"{RED}ERR{RESET} {msg}", file=sys.stderr)
 
 
 def verbose(msg: str) -> None:
     if ARGS.verbose:
-        print(f"  {msg}")
+        with _print_lock:
+            print(f"  {msg}")
 
 
 # ---------------------------------------------------------------------------
@@ -674,6 +683,20 @@ GIT_DEPS: dict[str, GitDep] = {
 }
 
 
+def _git(*args: str) -> None:
+    """Run a git command, retrying once with HTTP/1.1 on failure."""
+    cmd = ["git", *args]
+    try:
+        subprocess.run(cmd, check=True, capture_output=True)
+    except subprocess.CalledProcessError:
+        verbose("retrying with http.version=HTTP/1.1")
+        subprocess.run(
+            ["git", "-c", "http.version=HTTP/1.1", *args],
+            check=True,
+            capture_output=True,
+        )
+
+
 def install_git_dep(name: str, dep: GitDep) -> bool:
     dest = _expand(dep.dest)
     url = f"https://github.com/{dep.repo}.git"
@@ -687,22 +710,10 @@ def install_git_dep(name: str, dep: GitDep) -> bool:
             return True
         try:
             if dep.shallow:
-                subprocess.run(
-                    ["git", "-C", str(dest), "fetch", "--depth=1"],
-                    check=True,
-                    capture_output=True,
-                )
-                subprocess.run(
-                    ["git", "-C", str(dest), "reset", "--hard", "origin/HEAD"],
-                    check=True,
-                    capture_output=True,
-                )
+                _git("-C", str(dest), "fetch", "--depth=1")
+                _git("-C", str(dest), "reset", "--hard", "origin/HEAD")
             else:
-                subprocess.run(
-                    ["git", "-C", str(dest), "pull", "--ff-only"],
-                    check=True,
-                    capture_output=True,
-                )
+                _git("-C", str(dest), "pull", "--ff-only")
         except subprocess.CalledProcessError as exc:
             err(f"{name}: update failed: {exc.stderr.decode()}")
             return False
@@ -713,12 +724,12 @@ def install_git_dep(name: str, dep: GitDep) -> bool:
     if ARGS.dry_run:
         return True
     dest.parent.mkdir(parents=True, exist_ok=True)
-    cmd = ["git", "clone"]
+    clone_args = ["clone"]
     if dep.shallow:
-        cmd += ["--depth=1"]
-    cmd += [url, str(dest)]
+        clone_args += ["--depth=1"]
+    clone_args += [url, str(dest)]
     try:
-        subprocess.run(cmd, check=True, capture_output=True)
+        _git(*clone_args)
         ok(f"{name}: cloned")
         return True
     except subprocess.CalledProcessError as exc:
@@ -859,36 +870,50 @@ def main() -> None:
         info("Dry run — no changes will be made")
 
     failures: list[str] = []
+    max_workers = 6
 
-    # Phase 1: Bootstrap tools (gh, jq)
+    # Phase 1: Bootstrap tools (zsh, gh, jq) — sequential for API auth
     for name in BOOTSTRAP_TOOLS:
         if requested and name not in requested:
             continue
         if not install_binary_tool(name, BINARY_TOOLS[name]):
             failures.append(name)
 
-    # Phase 2: All other binary tools
-    for name, tool in BINARY_TOOLS.items():
-        if name in BOOTSTRAP_TOOLS:
-            continue
-        if requested and name not in requested:
-            continue
-        if not install_binary_tool(name, tool):
-            failures.append(name)
+    # Phase 2: Remaining binary tools + node — parallel
+    binary_tasks = {
+        name: tool
+        for name, tool in BINARY_TOOLS.items()
+        if name not in BOOTSTRAP_TOOLS and (not requested or name in requested)
+    }
+    with ThreadPoolExecutor(max_workers=max_workers) as pool:
+        futures = {
+            pool.submit(install_binary_tool, name, tool): name
+            for name, tool in binary_tasks.items()
+        }
+        if not requested or "node" in requested:
+            futures[pool.submit(install_node)] = "node"
+        for fut in as_completed(futures):
+            name = futures[fut]
+            if not fut.result():
+                failures.append(name)
 
-    # Phase 3: Git dependencies
-    for name, dep in GIT_DEPS.items():
-        if requested and name not in requested:
-            continue
-        if not install_git_dep(name, dep):
-            failures.append(name)
+    # Phase 3: Git dependencies — parallel
+    git_tasks = {
+        name: dep
+        for name, dep in GIT_DEPS.items()
+        if not requested or name in requested
+    }
+    with ThreadPoolExecutor(max_workers=max_workers) as pool:
+        futures = {
+            pool.submit(install_git_dep, name, dep): name
+            for name, dep in git_tasks.items()
+        }
+        for fut in as_completed(futures):
+            name = futures[fut]
+            if not fut.result():
+                failures.append(name)
 
-    # Phase 4: Node.js
-    if not requested or "node" in requested:
-        if not install_node():
-            failures.append("node")
-
-    # Phase 5: Claude Code
+    # Phase 4: Claude Code
     if not requested or "claude-code" in requested:
         if not install_claude_code():
             failures.append("claude-code")
