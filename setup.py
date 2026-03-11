@@ -699,6 +699,10 @@ GIT_DEPS: dict[str, GitDep] = {
         repo="hlissner/zsh-autopair",
         dest="~/.zsh/zsh-autopair",
     ),
+    "zsh-defer": GitDep(
+        repo="romkatv/zsh-defer",
+        dest="~/.zsh/zsh-defer",
+    ),
     "powerlevel10k": GitDep(
         repo="romkatv/powerlevel10k",
         dest="~/.zsh/powerlevel10k",

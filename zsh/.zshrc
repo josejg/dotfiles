@@ -1,4 +1,5 @@
 # Enable Powerlevel10k instant prompt. Should stay close to the top of ~/.zshrc.
+typeset -g POWERLEVEL9K_INSTANT_PROMPT=quiet
 if [[ -r "${XDG_CACHE_HOME:-$HOME/.cache}/p10k-instant-prompt-${(%):-%n}.zsh" ]]; then
   source "${XDG_CACHE_HOME:-$HOME/.cache}/p10k-instant-prompt-${(%):-%n}.zsh"
 fi
@@ -12,6 +13,8 @@ setopt CORRECT              # command correction
 setopt NO_BEEP              # no bell on error
 setopt MULTIOS              # allow multiple redirections
 setopt LONG_LIST_JOBS       # list jobs in long format
+
+REPORTTIME=5                # show timing for commands >5s
 
 # ---------------------------------------------------------------------------
 # History
@@ -57,6 +60,13 @@ zstyle -e ':completion:*:hosts' hosts 'reply=(
 export COMP_KNOWN_HOSTS_WITH_HOSTFILE=""
 
 # ---------------------------------------------------------------------------
+# Environment & Aliases (sourced before plugins so aliases are available)
+# ---------------------------------------------------------------------------
+[[ -f ~/.config/shell/env.sh ]]       && source ~/.config/shell/env.sh
+[[ -f ~/.config/shell/aliases.sh ]]   && source ~/.config/shell/aliases.sh
+[[ -f ~/.config/shell/functions.sh ]] && source ~/.config/shell/functions.sh
+
+# ---------------------------------------------------------------------------
 # Editor / Keybindings
 # ---------------------------------------------------------------------------
 bindkey -e  # emacs keybindings
@@ -100,7 +110,11 @@ add-zsh-hook precmd set-terminal-title-precmd
 if [[ -f $HOME/.zsh/fzf-tab/fzf-tab.plugin.zsh ]]; then
   source $HOME/.zsh/fzf-tab/fzf-tab.plugin.zsh
   # Preview for files/directories
-  zstyle ':fzf-tab:complete:cd:*' fzf-preview 'ls --color=always $realpath'
+  if command -v eza > /dev/null; then
+    zstyle ':fzf-tab:complete:cd:*' fzf-preview 'eza --color=always $realpath'
+  else
+    zstyle ':fzf-tab:complete:cd:*' fzf-preview 'ls -G $realpath 2>/dev/null || ls --color=always $realpath'
+  fi
   zstyle ':fzf-tab:complete:ls:*' fzf-preview 'ls --color=always $realpath'
   zstyle ':fzf-tab:*' fzf-min-height 20
 fi
@@ -109,23 +123,37 @@ if [[ -f $HOME/.zsh/zsh-autosuggestions/zsh-autosuggestions.zsh ]]; then
   source $HOME/.zsh/zsh-autosuggestions/zsh-autosuggestions.zsh
 fi
 
-if [[ -f $HOME/.zsh/fast-syntax-highlighting/fast-syntax-highlighting.plugin.zsh ]]; then
-  source $HOME/.zsh/fast-syntax-highlighting/fast-syntax-highlighting.plugin.zsh
-fi
-
 if [[ -f $HOME/.zsh/zsh-history-substring-search/zsh-history-substring-search.zsh ]]; then
   source $HOME/.zsh/zsh-history-substring-search/zsh-history-substring-search.zsh
   bindkey '^[[A' history-substring-search-up
   bindkey '^[[B' history-substring-search-down
 fi
 
-if [[ -f $HOME/.zsh/zsh-you-should-use/you-should-use.plugin.zsh ]]; then
-  source $HOME/.zsh/zsh-you-should-use/you-should-use.plugin.zsh
-fi
+# Non-critical plugins: defer if zsh-defer is available
+if [[ -f $HOME/.zsh/zsh-defer/zsh-defer.plugin.zsh ]]; then
+  source $HOME/.zsh/zsh-defer/zsh-defer.plugin.zsh
 
-if [[ -f $HOME/.zsh/zsh-autopair/autopair.zsh ]]; then
-  source $HOME/.zsh/zsh-autopair/autopair.zsh
-  autopair-init
+  [[ -f $HOME/.zsh/zsh-you-should-use/you-should-use.plugin.zsh ]] && \
+    zsh-defer source $HOME/.zsh/zsh-you-should-use/you-should-use.plugin.zsh
+
+  if [[ -f $HOME/.zsh/zsh-autopair/autopair.zsh ]]; then
+    zsh-defer source $HOME/.zsh/zsh-autopair/autopair.zsh
+    zsh-defer autopair-init
+  fi
+
+  [[ -f $HOME/.zsh/fast-syntax-highlighting/fast-syntax-highlighting.plugin.zsh ]] && \
+    zsh-defer source $HOME/.zsh/fast-syntax-highlighting/fast-syntax-highlighting.plugin.zsh
+else
+  [[ -f $HOME/.zsh/zsh-you-should-use/you-should-use.plugin.zsh ]] && \
+    source $HOME/.zsh/zsh-you-should-use/you-should-use.plugin.zsh
+
+  if [[ -f $HOME/.zsh/zsh-autopair/autopair.zsh ]]; then
+    source $HOME/.zsh/zsh-autopair/autopair.zsh
+    autopair-init
+  fi
+
+  [[ -f $HOME/.zsh/fast-syntax-highlighting/fast-syntax-highlighting.plugin.zsh ]] && \
+    source $HOME/.zsh/fast-syntax-highlighting/fast-syntax-highlighting.plugin.zsh
 fi
 
 # ---------------------------------------------------------------------------
@@ -184,7 +212,6 @@ fi
 if [[ -f $HOME/.zsh/powerlevel10k/powerlevel10k.zsh-theme ]]; then
   source $HOME/.zsh/powerlevel10k/powerlevel10k.zsh-theme
 fi
-typeset -g POWERLEVEL9K_INSTANT_PROMPT=quiet
 [[ ! -f ~/.p10k.zsh ]] || source ~/.p10k.zsh
 
 # For env with run name
@@ -195,24 +222,8 @@ if [[ -f /tmp/runname ]]; then
 fi
 
 # ---------------------------------------------------------------------------
-# Environment & Aliases
-# ---------------------------------------------------------------------------
-for f in ~/.config/shell/*.sh; do
-  [[ -f "$f" ]] && source "$f"
-done
-
 # Zoxide
+# ---------------------------------------------------------------------------
 if command -v zoxide > /dev/null; then
-  eval "$(zoxide init zsh)"
+  eval "$(zoxide init zsh --cmd cd)"
 fi
-
-# ---------------------------------------------------------------------------
-# Optional: LM Studio, Bun
-# ---------------------------------------------------------------------------
-# LM Studio CLI
-export PATH="$PATH:$HOME/.lmstudio/bin"
-
-# Bun
-[ -s "$HOME/.bun/_bun" ] && source "$HOME/.bun/_bun"
-export BUN_INSTALL="$HOME/.bun"
-export PATH="$BUN_INSTALL/bin:$PATH"
