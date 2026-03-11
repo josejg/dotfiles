@@ -925,7 +925,11 @@ def sync_nvim_plugins() -> bool:
     # Point nvim at the repo config directly (works before install.py symlinks)
     dotfiles_dir = Path(__file__).resolve().parent
     xdg_config = str(dotfiles_dir / "nvim" / ".config")
-    env = {**os.environ, "XDG_CONFIG_HOME": xdg_config}
+    # Ensure ~/.local/bin is on PATH so nvim can find node (for copilot.lua cond)
+    path = os.environ.get("PATH", "")
+    if str(LOCAL_BIN) not in path:
+        path = f"{LOCAL_BIN}:{path}"
+    env = {**os.environ, "XDG_CONFIG_HOME": xdg_config, "PATH": path}
 
     success = True
     # Mason: force-load the lazy plugin, then run sync install
