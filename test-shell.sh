@@ -3,23 +3,22 @@ set -e
 export TERM=${TERM:-xterm-256color}
 export PATH="$HOME/.local/bin:$PATH"
 
+FAIL=0
+pass() { echo "  OK: $1"; }
+fail() { echo "  FAIL: $1"; FAIL=$((FAIL + 1)); }
+
 echo "=== Symlink check ==="
-ERRORS=0
 for f in ~/.zshrc ~/.zshenv ~/.zprofile ~/.zlogin ~/.p10k.zsh \
          ~/.config/shell/env.sh ~/.config/shell/aliases.sh ~/.config/shell/functions.sh \
          ~/.gitconfig ~/.bashrc ~/.bash_profile ~/.tmux.conf; do
   if [[ -L "$f" ]]; then
-    target=$(readlink "$f")
-    echo "  OK: $f -> $target"
+    pass "$f -> $(readlink "$f")"
   elif [[ -e "$f" ]]; then
-    echo "  WARN: $f exists but is not a symlink"
-    ERRORS=$((ERRORS + 1))
+    fail "$f exists but is not a symlink"
   else
-    echo "  MISS: $f does not exist"
-    ERRORS=$((ERRORS + 1))
+    fail "$f does not exist"
   fi
 done
-[[ $ERRORS -eq 0 ]] && echo "All symlinks OK" || echo "$ERRORS issues found"
 
 echo ""
 echo "=== Plugins ==="
@@ -31,25 +30,60 @@ for p in \
   "$HOME/.zsh/zsh-completions/src" \
   "$HOME/.zsh/zsh-you-should-use/you-should-use.plugin.zsh" \
   "$HOME/.zsh/fzf-tab/fzf-tab.plugin.zsh" \
-  "$HOME/.zsh/zsh-autopair/autopair.zsh"; do
+  "$HOME/.zsh/zsh-autopair/autopair.zsh" \
+  "$HOME/.zsh/zsh-defer/zsh-defer.plugin.zsh"; do
   name=${p:t}
-  [[ -f $p || -d $p ]] && echo "  $name: OK" || echo "  $name: MISSING"
+  [[ -f $p || -d $p ]] && pass "$name" || fail "$name MISSING"
 done
 
 echo ""
-echo "=== Binary tools ==="
-for cmd in fzf delta fd rg difft lazygit zoxide eza nvim jq gh; do
-  if command -v $cmd &>/dev/null; then
-    echo "  $cmd: OK ($(command -v $cmd))"
+echo "=== Binary tools (--version) ==="
+typeset -A version_flags=(
+  [fzf]="--version"
+  [delta]="--version"
+  [fd]="--version"
+  [rg]="--version"
+  [difft]="--version"
+  [lazygit]="--version"
+  [zoxide]="--version"
+  [eza]="--version"
+  [nvim]="--version"
+  [jq]="--version"
+  [gh]="--version"
+  [uv]="--version"
+  [node]="--version"
+  [ruff]="--version"
+  [yamllint]="--version"
+)
+for cmd flag in "${(@kv)version_flags}"; do
+  if command -v "$cmd" &>/dev/null; then
+    ver=$("$cmd" "$flag" 2>&1 | head -1)
+    pass "$cmd: $ver"
   else
-    echo "  $cmd: MISSING"
+    fail "$cmd: not found"
   fi
 done
 
 echo ""
 echo "=== Source zshrc ==="
-source ~/.zshrc 2>&1 && echo "zshrc: OK" || echo "zshrc: FAILED"
+source ~/.zshrc 2>&1 && pass "zshrc sourced" || fail "zshrc source failed"
 
 echo ""
-echo "=== Startup time ==="
+echo "=== Startup time (zsh) ==="
 time zsh -i -c exit
+
+echo ""
+echo "=== Startup time (nvim) ==="
+if command -v nvim &>/dev/null; then
+  time nvim --headless +qa
+else
+  fail "nvim not found, skipping startup test"
+fi
+
+echo ""
+if [[ $FAIL -gt 0 ]]; then
+  echo "RESULT: $FAIL failures"
+  exit 1
+else
+  echo "RESULT: all checks passed"
+fi
