@@ -5,6 +5,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import os
 import platform
 import re
 import shutil
@@ -847,7 +848,7 @@ def install_claude_code() -> bool:
 
 
 def sync_nvim_plugins() -> bool:
-    """Run lazy.nvim sync headlessly to install/update neovim plugins."""
+    """Headless nvim setup: Lazy plugins, treesitter parsers, Mason tools."""
     nvim = shutil.which("nvim")
     if not nvim:
         nvim_local = _expand("~/.local/nvim") / "bin" / "nvim"
@@ -857,23 +858,37 @@ def sync_nvim_plugins() -> bool:
             warn("nvim-plugins: nvim not found, skipping")
             return True
 
-    info("nvim-plugins: syncing")
     if ARGS.dry_run:
+        info("nvim-plugins: would sync plugins, treesitter, mason")
         return True
-    try:
-        subprocess.run(
-            [nvim, "--headless", "+Lazy! sync", "+qa"],
-            check=True,
-            timeout=300,
-        )
-        ok("nvim-plugins: synced")
-        return True
-    except subprocess.TimeoutExpired:
-        err("nvim-plugins: sync timed out")
-        return False
-    except subprocess.CalledProcessError as exc:
-        err(f"nvim-plugins: sync failed: {exc}")
-        return False
+
+    # Point nvim at the repo config directly (works before install.py symlinks)
+    dotfiles_dir = Path(__file__).resolve().parent
+    xdg_config = str(dotfiles_dir / "nvim" / ".config")
+    env = {**os.environ, "XDG_CONFIG_HOME": xdg_config}
+
+    success = True
+    # Mason: force-load the lazy plugin, then run sync install
+    mason_cmd = (
+        "lua require('lazy').load({plugins={'mason.nvim','mason-tool-installer.nvim'}})"
+    )
+    steps = [
+        ("plugins", [nvim, "--headless", "+Lazy! sync", "+qa"]),
+        ("treesitter", [nvim, "--headless", "+TSUpdateSync", "+qa"]),
+        ("mason", [nvim, "--headless", f"+{mason_cmd}", "+MasonToolsInstallSync", "+qa"]),
+    ]
+    for step_name, cmd in steps:
+        info(f"nvim-plugins: syncing {step_name}")
+        try:
+            subprocess.run(cmd, check=True, timeout=600, env=env)
+            ok(f"nvim-plugins: {step_name} done")
+        except subprocess.TimeoutExpired:
+            err(f"nvim-plugins: {step_name} timed out")
+            success = False
+        except subprocess.CalledProcessError as exc:
+            err(f"nvim-plugins: {step_name} failed: {exc}")
+            success = False
+    return success
 
 
 # ---------------------------------------------------------------------------
