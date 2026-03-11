@@ -179,6 +179,7 @@ map("n", "<Leader>|", ":vsp<CR>", { silent = true })
 map("n", "<Leader>w", ":w<CR>")
 map("n", "<Leader>q", ":q<CR>")
 map("n", "<Leader>Q", ":q!<CR>")
+map("n", "<Leader>wq", ":wq<CR>")
 
 -- Open new file in current file's directory (quick sibling file creation)
 map("n", "<Leader>O", ':e <C-R>=expand("%:p:h") . "/" <CR>', { desc = "Open adjacent file" })
