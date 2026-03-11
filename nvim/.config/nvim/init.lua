@@ -2,6 +2,9 @@ local opt = vim.opt
 local map = vim.keymap.set
 local autocmd = vim.api.nvim_create_autocmd
 
+-- Mason bin on PATH so nvim-lint/conform can find mason-installed tools
+vim.env.PATH = vim.fn.stdpath("data") .. "/mason/bin:" .. vim.env.PATH
+
 -- =============================================================================
 --   OPTIONS
 -- =============================================================================
