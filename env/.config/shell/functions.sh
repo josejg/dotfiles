@@ -21,7 +21,7 @@ gacp() {
 }
 
 gds() {
-    git diff $@ | delta -s
+    git diff "$@" | delta -s
 }
 
 # Rename terminal windows
@@ -71,9 +71,13 @@ vyd() {
 }
 
 notify-complete() {
-    pid=$1
-    msg=$(ps -o cmd fp $pid | tail -n 1)
-    tail --pid=$pid -f /dev/null && notifiers telegram notify "$msg"
+    local pid=$1
+    local msg
+    msg=$(ps -o comm= -p "$pid")
+    while kill -0 "$pid" 2>/dev/null; do
+        sleep 1
+    done
+    notifiers telegram notify "$msg"
 }
 
 res() { echo $1 && mediainfo $1 | grep -i height; }
@@ -96,21 +100,12 @@ rgs() { printf '=%.0s' {1..${COLUMNS:-80}}; echo; rg "$@"; }
 # fzf functions
 if command -v fzf > /dev/null; then
 
-  # fkill - kill process
-  fkill() {
-    local pid
-    pid=$(ps -ef | sed 1d | fzf -m | awk '{print $2}')
-    if [ "x$pid" != "x" ]; then
-      echo $pid | xargs kill -${1:-9}
-    fi
-  }
-
   v() {
     local file
     if [[ -f $1 ]]; then
-        vim $1
+        ${EDITOR:-nvim} $1
     else
-        file="$(fd -t f | fzf -1 -0 --query="$1" +m)" && vim "${file}" || return 1
+        file="$(fd -t f | fzf -1 -0 --query="$1" +m)" && ${EDITOR:-nvim} "${file}" || return 1
     fi
   }
 

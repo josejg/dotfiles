@@ -28,23 +28,6 @@ prepend_path "/usr/local/opt/ruby/bin"
 append_path "$HOME/.emacs.d/bin"
 prepend_path "/opt/homebrew/bin"
 
-here() {
-    local loc
-    if [ "$#" -eq 1 ]; then
-        loc=$(realpath "$1")
-    else
-        loc=$(realpath ".")
-    fi
-    ln -sfn "${loc}" "$HOME/.shell.here"
-    echo "here -> $(readlink $HOME/.shell.here)"
-}
-
-there="$HOME/.shell.here"
-
-there() {
-    cd "$(readlink "${there}")"
-}
-
 
 ###########################################################################################################################
 
@@ -56,14 +39,7 @@ export PYTHONPATH="$HOME/python-libs:$PYTHONPATH"
 
 ###########################################################################################################################
 
-# Lazy-load cargo/rust
-if [[ -f "$HOME/.cargo/env" ]]; then
-    cargo()  { unfunction cargo rustc rustup 2>/dev/null; unset -f cargo rustc rustup 2>/dev/null; source "$HOME/.cargo/env"; cargo "$@"; }
-    rustc()  { unfunction cargo rustc rustup 2>/dev/null; unset -f cargo rustc rustup 2>/dev/null; source "$HOME/.cargo/env"; rustc "$@"; }
-    rustup() { unfunction cargo rustc rustup 2>/dev/null; unset -f cargo rustc rustup 2>/dev/null; source "$HOME/.cargo/env"; rustup "$@"; }
-fi
-
-# Rust bins still need to be on PATH for non-cargo tools
+# Rust bins on PATH (lazy-load thunks are in .zshrc)
 prepend_path "$HOME/.cargo/bin"
 
 
@@ -87,7 +63,7 @@ fi
 
 # Pager
 export PAGER='less'
-export LESS='-F -g -i -M -R -S -w -X -z-4'
+export LESS='-F -g -i -M -R -S -w -z-4'
 
 # lesspipe
 if command -v lesspipe > /dev/null 2>&1; then
@@ -111,11 +87,6 @@ fi
 ###########################################################################################################################
 
 # Misc Software
-
-# Zoxide cd override (init is done in each shell's rc file)
-if command -v zoxide > /dev/null; then
-    cd() { builtin cd "$@" || z "$@"; }
-fi
 
 # Ansible
 export ANSIBLE_NOCOWS=1

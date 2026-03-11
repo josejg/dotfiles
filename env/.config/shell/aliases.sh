@@ -1,5 +1,5 @@
 function alias_if_exists() {
-    if command -v $2 > /dev/null; then
+    if command -v "$2" > /dev/null; then
         alias "$1"="$2"
     fi
 }
@@ -11,6 +11,10 @@ alias_if_exists 'diff' 'colordiff'
 alias_if_exists 'vim' 'nvim'
 alias_if_exists 'fdupes' 'jdupes'
 
+# Safety aliases
+alias rm='rm -i'
+alias mv='mv -i'
+alias cp='cp -i'
 
 # Shortcuts
 
@@ -28,7 +32,10 @@ alias cf='cd $(fd -t d | fzf)'
 
 ## Git
 alias ga='git add'
-alias gs='git status'
+# Only alias gs if /usr/local/bin/gs (ghostscript) is not present
+if ! [ -x /usr/local/bin/gs ]; then
+  alias gs='git status'
+fi
 alias gu='git pull'
 alias gg='git graph'
 alias gd='git diff'
@@ -56,10 +63,18 @@ alias my-ip="curl ipinfo.io/ip 2> /dev/null"
 alias sb='subl'
 alias spell='aspell check --dont-backup'
 alias printpath='echo $PATH | sed "s/:/\\n/g"'
-alias sep='tput cols | python -c "import sys; print(\"=\"*int(sys.stdin.read().strip()))"'
-alias clock='watch -n 0.1 "date +"%H:%M:%S" | toilet -f bigmono9"'
-alias docker="DOCKER_BUILDKIT=1 docker"
+alias sep='printf "=%.0s" $(seq 1 ${COLUMNS:-80}); echo'
+alias clock='watch -n 0.1 "date +\"%H:%M:%S\" | toilet -f bigmono9"'
 alias tel="notifiers telegram notify"
+
+# Docker BuildKit: only needed for Docker <23
+if command -v docker > /dev/null; then
+  _docker_ver=$(docker version --format '{{.Client.Version}}' 2>/dev/null)
+  if [ -n "$_docker_ver" ] && [ "${_docker_ver%%.*}" -lt 23 ] 2>/dev/null; then
+    alias docker="DOCKER_BUILDKIT=1 docker"
+  fi
+  unset _docker_ver
+fi
 
 ## Ripgrep-all
 if command -v rga > /dev/null; then
@@ -86,10 +101,6 @@ case "$(uname -s)" in
        alias_if_exists "$i" "g$i"
      done
      alias_if_exists "id" "/usr/local/bin/gid"
-     # Add -i to destructive commands (works with GNU coreutils from alias_if_exists loop)
-     alias rm='rm -i'
-     alias mv='mv -i'
-     alias cp='cp -i'
      alias sudoedit="sudo -E vim"
      ;;
 

@@ -222,6 +222,15 @@ if [[ -f /tmp/runname ]]; then
 fi
 
 # ---------------------------------------------------------------------------
+# Lazy-load cargo/rust (zsh-specific: uses unfunction)
+# ---------------------------------------------------------------------------
+if [[ -f "$HOME/.cargo/env" ]]; then
+  cargo()  { unfunction cargo rustc rustup 2>/dev/null; source "$HOME/.cargo/env"; cargo "$@"; }
+  rustc()  { unfunction cargo rustc rustup 2>/dev/null; source "$HOME/.cargo/env"; rustc "$@"; }
+  rustup() { unfunction cargo rustc rustup 2>/dev/null; source "$HOME/.cargo/env"; rustup "$@"; }
+fi
+
+# ---------------------------------------------------------------------------
 # Zoxide
 # ---------------------------------------------------------------------------
 if command -v zoxide > /dev/null; then
