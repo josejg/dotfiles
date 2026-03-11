@@ -178,7 +178,6 @@ map("n", "<Leader>|", ":vsp<CR>", { silent = true })
 -- Quick save/quit
 map("n", "<Leader>w", ":w<CR>")
 map("n", "<Leader>q", ":q<CR>")
-map("n", "<Leader>wq", ":wq<CR>")
 map("n", "<Leader>Q", ":q!<CR>")
 
 -- Open new file in current file's directory (quick sibling file creation)

@@ -565,7 +565,7 @@ return {
             local map = vim.keymap.set
             -- Personal shortcuts (muscle memory)
             map("n", "<C-p>",      function() Snacks.picker.files() end,              { desc = "Find files" })
-            map("n", "<Leader>g",   function() Snacks.picker.grep() end,               { desc = "Live grep" })
+            map("n", "<Leader>/",   function() Snacks.picker.grep() end,               { desc = "Live grep" })
             map("n", "<Leader>;",   function() Snacks.picker.buffers() end,            { desc = "Buffers" })
             -- Find (Space f prefix)
             map("n", "<Leader>ff",  function() Snacks.picker.files() end,              { desc = "Files" })
@@ -586,19 +586,18 @@ return {
             -- Terminal
             map({ "n", "t" }, "<C-\\>", function() Snacks.terminal() end, { desc = "Toggle terminal" })
             -- Buffer management
-            map("n", "<Leader>x", function() Snacks.bufdelete() end, { desc = "Close buffer" })
-            -- Git browse
-            map("n", "<Leader>gh", function() Snacks.gitbrowse() end, { desc = "Open in GitHub" })
-            -- LSP file rename
-            map("n", "<Leader>cR", function() Snacks.rename.rename_file() end, { desc = "Rename file" })
+            map("n", "<Leader>bd", function() Snacks.bufdelete() end, { desc = "Delete buffer" })
             -- Git
-            map("n", "<Leader>G", function()
+            map("n", "<Leader>gh", function() Snacks.gitbrowse() end, { desc = "Open in GitHub" })
+            map("n", "<Leader>gG", function()
                 if vim.fn.executable("lazygit") == 1 then
                     Snacks.lazygit()
                 else
                     vim.notify("lazygit not installed: https://github.com/jesseduffield/lazygit", vim.log.levels.WARN)
                 end
             end, { desc = "Lazygit" })
+            -- LSP file rename
+            map("n", "<Leader>cR", function() Snacks.rename.rename_file() end, { desc = "Rename file" })
         end,
     },
 
@@ -613,7 +612,10 @@ return {
             icons = { mappings = false },
             spec = {
                 { "<Leader>a", group = "ai" },
+                { "<Leader>b", group = "buffer" },
+                { "<Leader>c", group = "code" },
                 { "<Leader>f", group = "find" },
+                { "<Leader>g", group = "git" },
                 { "<Leader>h", group = "git hunk" },
                 { "<Leader>o", group = "toggle" },
                 { "<Leader>x", group = "trouble" },
