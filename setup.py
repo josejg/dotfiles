@@ -829,6 +829,41 @@ def install_claude_code() -> bool:
 
 
 # ---------------------------------------------------------------------------
+# Neovim plugins
+# ---------------------------------------------------------------------------
+
+
+def sync_nvim_plugins() -> bool:
+    """Run lazy.nvim sync headlessly to install/update neovim plugins."""
+    nvim = shutil.which("nvim")
+    if not nvim:
+        nvim_local = _expand("~/.local/nvim") / "bin" / "nvim"
+        if nvim_local.exists():
+            nvim = str(nvim_local)
+        else:
+            warn("nvim-plugins: nvim not found, skipping")
+            return True
+
+    info("nvim-plugins: syncing")
+    if ARGS.dry_run:
+        return True
+    try:
+        subprocess.run(
+            [nvim, "--headless", "+Lazy! sync", "+qa"],
+            check=True,
+            timeout=300,
+        )
+        ok("nvim-plugins: synced")
+        return True
+    except subprocess.TimeoutExpired:
+        err("nvim-plugins: sync timed out")
+        return False
+    except subprocess.CalledProcessError as exc:
+        err(f"nvim-plugins: sync failed: {exc}")
+        return False
+
+
+# ---------------------------------------------------------------------------
 # CLI
 # ---------------------------------------------------------------------------
 
@@ -858,7 +893,7 @@ def main() -> None:
     ARGS = parser.parse_args()
 
     requested = set(ARGS.tools) if ARGS.tools else None
-    all_names = set(BINARY_TOOLS) | set(GIT_DEPS) | {"node", "claude-code"}
+    all_names = set(BINARY_TOOLS) | set(GIT_DEPS) | {"node", "claude-code", "nvim-plugins"}
     if requested:
         unknown = requested - all_names
         if unknown:
@@ -917,6 +952,11 @@ def main() -> None:
     if not requested or "claude-code" in requested:
         if not install_claude_code():
             failures.append("claude-code")
+
+    # Phase 5: Neovim plugins (needs nvim + node from earlier phases)
+    if not requested or "nvim-plugins" in requested:
+        if not sync_nvim_plugins():
+            failures.append("nvim-plugins")
 
     if failures:
         err(f"Failed: {', '.join(failures)}")
