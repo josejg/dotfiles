@@ -251,13 +251,12 @@ return {
         dependencies = { "mason.nvim" },
         opts = function()
             local tools = {
-                "ruff",              -- Python linter + formatter
                 "stylua",            -- Lua formatter
                 "shellcheck",        -- Shell linter
                 "shfmt",             -- Shell formatter
                 "actionlint",        -- GitHub Actions workflow linter
-                "yamllint",          -- YAML linter
                 "jq",                -- JSON formatter
+                -- ruff and yamllint installed via uv (setup.py uv-tools)
             }
             -- These need npm or lack ARM64 binaries
             local has_npm = vim.fn.executable("npm") == 1

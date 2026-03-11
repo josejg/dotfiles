@@ -462,6 +462,20 @@ BINARY_TOOLS: dict[str, BinaryTool] = {
         },
         binary_in_archive="eza",
     ),
+    "uv": BinaryTool(
+        repo="astral-sh/uv",
+        binary_name="uv",
+        brew_name="uv",
+        tag_prefix="",
+        assets={
+            "linux_x86_64": "uv-x86_64-unknown-linux-gnu.tar.gz",
+            "linux_arm64": "uv-aarch64-unknown-linux-gnu.tar.gz",
+            "darwin_x86_64": "uv-x86_64-apple-darwin.tar.gz",
+            "darwin_arm64": "uv-aarch64-apple-darwin.tar.gz",
+        },
+        strip_components=1,
+        binary_in_archive="uv",
+    ),
     "shellcheck": BinaryTool(
         repo="koalaman/shellcheck",
         binary_name="shellcheck",
@@ -843,6 +857,44 @@ def install_claude_code() -> bool:
 
 
 # ---------------------------------------------------------------------------
+# uv tools (Python CLI tools installed via uv tool install)
+# ---------------------------------------------------------------------------
+
+UV_TOOLS = ["ruff", "yamllint"]
+
+
+def install_uv_tools() -> bool:
+    """Install Python CLI tools via uv tool install."""
+    uv = shutil.which("uv")
+    if not uv:
+        uv_local = LOCAL_BIN / "uv"
+        if uv_local.exists():
+            uv = str(uv_local)
+        else:
+            warn("uv-tools: uv not found, skipping")
+            return False
+
+    success = True
+    for tool in UV_TOOLS:
+        if not ARGS.upgrade and shutil.which(tool):
+            ok(f"uv-tools: {tool} already installed")
+            continue
+        info(f"uv-tools: installing {tool}")
+        if ARGS.dry_run:
+            continue
+        try:
+            cmd = [uv, "tool", "install", tool]
+            if ARGS.upgrade:
+                cmd.append("--upgrade")
+            subprocess.run(cmd, check=True, capture_output=True)
+            ok(f"uv-tools: {tool} installed")
+        except subprocess.CalledProcessError as exc:
+            err(f"uv-tools: {tool} failed: {exc.stderr.decode()}")
+            success = False
+    return success
+
+
+# ---------------------------------------------------------------------------
 # Neovim plugins
 # ---------------------------------------------------------------------------
 
@@ -921,7 +973,7 @@ def main() -> None:
     ARGS = parser.parse_args()
 
     requested = set(ARGS.tools) if ARGS.tools else None
-    all_names = set(BINARY_TOOLS) | set(GIT_DEPS) | {"node", "claude-code", "nvim-plugins"}
+    all_names = set(BINARY_TOOLS) | set(GIT_DEPS) | {"node", "uv-tools", "claude-code", "nvim-plugins"}
     if requested:
         unknown = requested - all_names
         if unknown:
@@ -976,7 +1028,12 @@ def main() -> None:
             if not fut.result():
                 failures.append(name)
 
-    # Phase 4: Claude Code
+    # Phase 4: uv tools (needs uv from phase 2)
+    if not requested or "uv-tools" in requested:
+        if not install_uv_tools():
+            failures.append("uv-tools")
+
+    # Phase 5: Claude Code
     if not requested or "claude-code" in requested:
         if not install_claude_code():
             failures.append("claude-code")

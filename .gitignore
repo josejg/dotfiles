@@ -14,10 +14,8 @@ python/.ipython/profile_default/log/
 python/.ipython/profile_default/pid/
 python/.ipython/profile_default/security/
 
-# Vim
-vim/.vim/plugged/
-vim/.vim/undodir/
-vim/.vim/spell/
+# Neovim
+nvim/.config/nvim/lazy-lock.json
 
 # macOS
 mac/.config/karabiner/automatic_backups/
