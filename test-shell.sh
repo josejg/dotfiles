@@ -38,25 +38,10 @@ done
 
 echo ""
 echo "=== Binary tools (--version) ==="
-typeset -A version_flags=(
-  [fzf]="--version"
-  [delta]="--version"
-  [fd]="--version"
-  [rg]="--version"
-  [difft]="--version"
-  [lazygit]="--version"
-  [zoxide]="--version"
-  [eza]="--version"
-  [bat]="--version"
-  [nvim]="--version"
-  [jq]="--version"
-  [gh]="--version"
-  [uv]="--version"
-  [node]="--version"
-  [ruff]="--version"
-  [yamllint]="--version"
-)
-for cmd flag in "${(@kv)version_flags}"; do
+cmds=(fzf delta fd rg difft lazygit zoxide eza bat age sops nvim jq gh uv node ruff yamllint)
+typeset -A version_flags=()  # overrides only; default is --version
+for cmd in "${cmds[@]}"; do
+  flag=${version_flags[$cmd]:-"--version"}
   if command -v "$cmd" &>/dev/null; then
     ver=$("$cmd" "$flag" 2>&1 | head -1)
     pass "$cmd: $ver"

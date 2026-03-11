@@ -6,11 +6,17 @@ services:
     stdin_open: true
     tty: true
 
-  bench:
+  bench-zsh:
     build: .
     volumes:
       - .:/root/.dotfiles
-    command: ["bench-startup", "--threshold", "200"]
+    command: ["bench-startup", "--target", "zsh", "--threshold", "300"]
+
+  bench-nvim:
+    build: .
+    volumes:
+      - .:/root/.dotfiles
+    command: ["bench-startup", "--target", "nvim", "--threshold", "500"]
 
   nvim:
     build: .

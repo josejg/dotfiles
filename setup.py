@@ -479,6 +479,30 @@ BINARY_TOOLS: dict[str, BinaryTool] = {
         strip_components=1,
         binary_in_archive="bat",
     ),
+    "age": BinaryTool(
+        repo="FiloSottile/age",
+        binary_name="age",
+        brew_name="age",
+        assets={
+            "linux_x86_64": "age-v{v}-linux-amd64.tar.gz",
+            "linux_arm64": "age-v{v}-linux-arm64.tar.gz",
+            "darwin_x86_64": "age-v{v}-darwin-amd64.tar.gz",
+            "darwin_arm64": "age-v{v}-darwin-arm64.tar.gz",
+        },
+        strip_components=1,
+        binary_in_archive="age",
+    ),
+    "sops": BinaryTool(
+        repo="getsops/sops",
+        binary_name="sops",
+        brew_name="sops",
+        assets={
+            "linux_x86_64": "sops-v{v}.linux.amd64",
+            "linux_arm64": "sops-v{v}.linux.arm64",
+            "darwin_x86_64": "sops-v{v}.darwin.amd64",
+            "darwin_arm64": "sops-v{v}.darwin.arm64",
+        },
+    ),
     "uv": BinaryTool(
         repo="astral-sh/uv",
         binary_name="uv",

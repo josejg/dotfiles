@@ -4,10 +4,18 @@ on:
   push:
     branches: [main]
   pull_request:
+  workflow_dispatch:
 
 jobs:
   test:
-    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        include:
+          - runner: ubuntu-latest
+            arch: amd64
+          - runner: ubuntu-24.04-arm
+            arch: arm64
+    runs-on: ${{ matrix.runner }}
     steps:
       - uses: actions/checkout@v4
 
@@ -17,5 +25,29 @@ jobs:
       - name: Run test suite
         run: docker compose run --rm shell test-shell
 
-      - name: Benchmark startup time
-        run: docker compose run --rm bench
+      - name: Benchmark zsh startup
+        run: docker compose run --rm bench-zsh
+
+      - name: Benchmark nvim startup
+        run: docker compose run --rm bench-nvim
+
+  test-macos:
+    if: github.event_name == 'workflow_dispatch'
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install tools
+        run: python3 setup.py
+
+      - name: Symlink dotfiles
+        run: python3 install.py --force
+
+      - name: Run test suite
+        run: zsh test-shell.sh
+
+      - name: Benchmark zsh startup
+        run: zsh bench-startup.sh --target zsh --threshold 300
+
+      - name: Benchmark nvim startup
+        run: zsh bench-startup.sh --target nvim --threshold 500

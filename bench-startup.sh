@@ -1,21 +1,24 @@
 #!/bin/zsh
-# Benchmark zsh startup time over multiple iterations.
-# Usage: ./bench-startup.sh [--threshold MS] [--iterations N] [--warmup N]
+# Benchmark startup time over multiple iterations.
+# Usage: ./bench-startup.sh [--target zsh|nvim] [--threshold MS] [--iterations N] [--warmup N]
 #
 # Exit 1 if median exceeds threshold (for CI).
 set -e
 
+TARGET="zsh"
 ITERATIONS=20
 WARMUP=3
 THRESHOLD=""  # ms, empty = no assertion
 
 while [[ $# -gt 0 ]]; do
   case $1 in
+    --target)     TARGET=$2; shift 2 ;;
     --threshold)  THRESHOLD=$2; shift 2 ;;
     --iterations) ITERATIONS=$2; shift 2 ;;
     --warmup)     WARMUP=$2; shift 2 ;;
     -h|--help)
-      echo "Usage: $0 [--threshold MS] [--iterations N] [--warmup N]"
+      echo "Usage: $0 [--target zsh|nvim] [--threshold MS] [--iterations N] [--warmup N]"
+      echo "  --target      What to benchmark: zsh or nvim (default: zsh)"
       echo "  --threshold   Fail if median startup exceeds this (ms)"
       echo "  --iterations  Number of timed runs (default: 20)"
       echo "  --warmup      Warmup runs before timing (default: 3)"
@@ -25,20 +28,35 @@ while [[ $# -gt 0 ]]; do
   esac
 done
 
+if [[ $TARGET != "zsh" && $TARGET != "nvim" ]]; then
+  echo "Error: --target must be 'zsh' or 'nvim', got '$TARGET'"
+  exit 1
+fi
+
 export TERM=${TERM:-xterm-256color}
 export PATH="$HOME/.local/bin:$PATH"
 
-# Warmup: prime caches, compinit dump, p10k instant prompt
+echo "Target: $TARGET"
+
+# Warmup
 echo "Warming up ($WARMUP runs)..."
 for ((i = 1; i <= WARMUP; i++)); do
-  zsh -i -c exit 2>/dev/null
+  if [[ $TARGET == "nvim" ]]; then
+    nvim --headless +qa 2>/dev/null
+  else
+    zsh -i -c exit 2>/dev/null
+  fi
 done
 
-# Collect timings using zsh -i (consistent with warmup)
+# Collect timings
 echo "Benchmarking ($ITERATIONS runs)..."
 times=()
 for ((i = 1; i <= ITERATIONS; i++)); do
-  t=$(zsh -i -c 'zmodload zsh/datetime; printf "%.1f" $(( SECONDS * 1000 ))' 2>/dev/null)
+  if [[ $TARGET == "nvim" ]]; then
+    t=$(zsh -c 'SECONDS=0; nvim --headless +qa 2>/dev/null; printf "%.1f" $((SECONDS * 1000))')
+  else
+    t=$(zsh -i -c 'zmodload zsh/datetime; printf "%.1f" $(( SECONDS * 1000 ))' 2>/dev/null)
+  fi
   times+=($t)
   printf "  run %2d: %s ms\n" "$i" "$t"
 done
